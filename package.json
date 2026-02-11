@@ -1,6 +1,6 @@
 {
 	"name": "job-scout",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "TypeScript-native job-scout library",
 	"type": "module",
 	"main": "dist/index.js",
