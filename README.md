@@ -1,11 +1,11 @@
-# job-scout
+# job-scout &middot; ![npm version](https://img.shields.io/npm/v/job-scout)
 
 TypeScript-first job scraping library for LinkedIn, Indeed, ZipRecruiter, Glassdoor, Google Jobs, Bayt, Naukri, and BDJobs.
 
 ## Install
 
 ```bash
-bun add job-scout
+npm install job-scout
 ```
 
 Node `>=20` is required.
@@ -118,3 +118,25 @@ Full suite:
 ```bash
 bun run test:all
 ```
+
+## Release
+
+This package is published through GitHub Actions using npm trusted publishing (OIDC).
+
+### Publish a new version
+
+1. Update the version in `package.json`.
+2. Commit and push the version change.
+3. Create and push a matching tag:
+
+```bash
+git tag v<package-version>
+git push origin v<package-version>
+```
+
+The publish workflow verifies that `v<package-version>` exactly matches `package.json` and then runs:
+
+- `bun run typecheck`
+- `bun run test`
+- `bun run build`
+- `npm publish --provenance --access public`
