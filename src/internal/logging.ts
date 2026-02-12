@@ -1,4 +1,4 @@
-import { setLoggerLevel } from "../util/logger.js";
+import { setLoggerLevel } from "@/util/logger";
 
 export type LogLevel = "error" | "warn" | "info" | "debug";
 

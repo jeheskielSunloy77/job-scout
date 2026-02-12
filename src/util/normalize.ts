@@ -4,7 +4,7 @@ import {
   SalarySource,
   Site,
   type Location
-} from "../model.js";
+} from "@/core/model";
 
 export const desiredOrder = [
   "id",

@@ -1,4 +1,4 @@
-import type { Job, JobRow } from "./types.js";
+import type { Job, JobRow } from "@/domain/types";
 
 function toDateString(value: Date | null): string | null {
   if (!value) {

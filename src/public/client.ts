@@ -2,10 +2,10 @@ import type {
 	JobScoutClient,
 	JobScoutConfig,
 	JobSearchRequest,
-} from '../domain/types.js'
+} from '@/domain/types'
 
-import { scoutJobRows } from './scout-job-rows.js'
-import { scoutJobs } from './scout-jobs.js'
+import { scoutJobRows } from '@/public/scout-job-rows'
+import { scoutJobs } from '@/public/scout-jobs'
 
 export function createClient(config: JobScoutConfig = {}): JobScoutClient {
 	return {

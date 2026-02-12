@@ -1,6 +1,6 @@
-export { createClient } from './client.js'
-export { scoutJobRows } from './scout-job-rows.js'
-export { scoutJobs } from './scout-jobs.js'
+export { createClient } from '@/public/client'
+export { scoutJobRows } from '@/public/scout-job-rows'
+export { scoutJobs } from '@/public/scout-jobs'
 
 export type {
 	CompensationInterval,
@@ -15,11 +15,11 @@ export type {
 	JobSearchRequest,
 	JobSite,
 	SalarySourceType,
-} from '../domain/types.js'
+} from '@/domain/types'
 
 export {
 	JobScoutError,
 	JobScoutValidationError,
 	SiteExecutionError,
-} from '../core/errors.js'
-export { toJobRow, toJobRows } from '../domain/row-normalizer.js'
+} from '@/core/errors'
+export { toJobRow, toJobRows } from '@/domain/row-normalizer'

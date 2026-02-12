@@ -1,4 +1,4 @@
-import type { Site } from '../model.js'
+import type { Site } from '@/core/model'
 
 export class JobScoutError extends Error {
 	constructor(message: string) {

@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 
-import { JobType, Location } from "../../model.js";
-import { getEnumFromJobTypeValue } from "../../util/site.js";
+import { JobType, Location } from "@/core/model";
+import { getEnumFromJobTypeValue } from "@/util/site";
 
 export function jobTypeCode(jobTypeEnum: JobType): string {
   return (

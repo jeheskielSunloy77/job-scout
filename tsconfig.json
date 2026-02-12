@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "lib": ["ES2022", "DOM"],
     "strict": true,
     "noImplicitOverride": true,
@@ -17,6 +17,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "rootDir": ".",
     "types": ["node"]
   },

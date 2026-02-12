@@ -1,4 +1,4 @@
-import type { HttpClient, RetryPolicy } from "./util/http.js";
+import type { HttpClient, RetryPolicy } from "@/util/http";
 
 export enum JobType {
   FULL_TIME = "fulltime",

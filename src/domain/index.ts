@@ -11,9 +11,9 @@ export type {
 	JobSearchRequest,
 	JobSite,
 	SalarySourceType,
-} from './types.js'
+} from '@/domain/types'
 
-export { toDomainEmploymentType, toScraperJobType } from './employment-type.js'
-export { toDomainJob } from './mapper.js'
-export { toJobRow, toJobRows } from './row-normalizer.js'
-export { allJobSites, toDomainSite, toScraperSite } from './site-mapping.js'
+export { toDomainEmploymentType, toScraperJobType } from '@/domain/employment-type'
+export { toDomainJob } from '@/domain/mapper'
+export { toJobRow, toJobRows } from '@/domain/row-normalizer'
+export { allJobSites, toDomainSite, toScraperSite } from '@/domain/site-mapping'

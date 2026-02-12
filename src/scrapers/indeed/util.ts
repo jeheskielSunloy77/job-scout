@@ -4,8 +4,8 @@ import {
   getCompensationInterval,
   JobType,
   type Location
-} from "../../model.js";
-import { getEnumFromJobTypeValue } from "../../util/site.js";
+} from "@/core/model";
+import { getEnumFromJobTypeValue } from "@/util/site";
 
 interface JobAttribute {
   label?: string;

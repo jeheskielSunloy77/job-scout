@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { Element } from "domhandler";
 
-import { BDJobsException } from "../../exception.js";
+import { BDJobsException } from "@/scrapers/exception";
 import {
   DescriptionFormat,
   type JobPost,
@@ -9,11 +9,11 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
-import { extractEmailsFromText, markdownConverter, removeAttributes } from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { headers, searchParams } from "./constant.js";
-import { findJobListings, isJobRemote, parseDate, parseLocation } from "./util.js";
+} from "@/core/model";
+import { extractEmailsFromText, markdownConverter, removeAttributes } from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { headers, searchParams } from "@/scrapers/bdjobs/constant";
+import { findJobListings, isJobRemote, parseDate, parseLocation } from "@/scrapers/bdjobs/util";
 
 const log = createLogger("BDJobs");
 

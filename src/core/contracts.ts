@@ -5,10 +5,10 @@ import type {
 	ScraperInput,
 	ScraperOptions,
 	Site,
-} from '../model.js'
-import type { HttpClient, HttpClientConfig } from '../util/http.js'
+} from '@/core/model'
+import type { HttpClient, HttpClientConfig } from '@/util/http'
 
-import type { JobSearchRequest } from '../domain/types.js'
+import type { JobSearchRequest } from '@/domain/types'
 
 export interface ResolvedJobScoutConfig {
 	raw: unknown

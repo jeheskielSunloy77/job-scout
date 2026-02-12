@@ -7,8 +7,8 @@ import {
   type Response
 } from "undici";
 
-import { Site } from "../model.js";
-import { createLogger } from "./logger.js";
+import { Site } from "@/core/model";
+import { createLogger } from "@/util/logger";
 
 const log = createLogger("HTTP");
 

@@ -6,17 +6,17 @@ import {
   type Compensation as ScraperCompensation,
   type JobType as ScraperJobType,
   Site
-} from "../model.js";
+} from "@/core/model";
 
-import { toDomainEmploymentType } from "./employment-type.js";
-import { toDomainSite } from "./site-mapping.js";
+import { toDomainEmploymentType } from "@/domain/employment-type";
+import { toDomainSite } from "@/domain/site-mapping";
 import type {
   CompensationInterval as DomainCompensationInterval,
   Job,
   JobCompensation,
   JobLocation,
   SalarySourceType
-} from "./types.js";
+} from "@/domain/types";
 
 function mapCompensationInterval(
   value: CompensationInterval | null | undefined

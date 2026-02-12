@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { Country, Location } from "../src/model.js";
+import { Country, Location } from "../src/core/model";
 
 describe("Country", () => {
   it("parses aliases with fromString", () => {

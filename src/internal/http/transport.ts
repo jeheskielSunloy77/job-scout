@@ -1,4 +1,4 @@
-import { HttpClient, type HttpClientConfig } from "../../util/http.js";
+import { HttpClient, type HttpClientConfig } from "@/util/http";
 
 export type Transport = HttpClient;
 

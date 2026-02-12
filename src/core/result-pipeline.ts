@@ -4,10 +4,10 @@ import {
   Site,
   type JobPost,
   type Country as CountryType
-} from "../model.js";
-import { convertToAnnual, extractSalary } from "../util/salary.js";
+} from "@/core/model";
+import { convertToAnnual, extractSalary } from "@/util/salary";
 
-import type { SiteSearchResult } from "./contracts.js";
+import type { SiteSearchResult } from "@/core/contracts";
 
 interface PipelineOptions {
   country: CountryType;

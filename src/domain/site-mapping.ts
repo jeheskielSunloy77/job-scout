@@ -1,6 +1,6 @@
-import { Site } from "../model.js";
+import { Site } from "@/core/model";
 
-import type { JobSite } from "./types.js";
+import type { JobSite } from "@/domain/types";
 
 const DOMAIN_TO_SCRAPER_SITE: Record<JobSite, Site> = {
   linkedin: Site.LINKEDIN,

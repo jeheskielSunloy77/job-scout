@@ -1,6 +1,6 @@
-import { Site } from "../model.js";
-import { GoogleScraper } from "../scrapers/google/index.js";
+import { Site } from "@/core/model";
+import { GoogleScraper } from "@/scrapers/google/index";
 
-import { createSiteProvider } from "./provider-factory.js";
+import { createSiteProvider } from "@/sites/provider-factory";
 
 export const googleProvider = createSiteProvider(Site.GOOGLE, GoogleScraper);

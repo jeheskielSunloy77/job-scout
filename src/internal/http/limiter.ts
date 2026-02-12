@@ -1,7 +1,7 @@
-import type { Site } from "../../model.js";
+import type { Site } from "@/core/model";
 
-import type { JobSite } from "../../domain/types.js";
-import { toScraperSite } from "../../domain/site-mapping.js";
+import type { JobSite } from "@/domain/types";
+import { toScraperSite } from "@/domain/site-mapping";
 
 export function toScraperSiteConcurrencyMap(
   input: Partial<Record<JobSite, number>> | undefined

@@ -1,4 +1,4 @@
-import { createLogger } from "../../util/logger.js";
+import { createLogger } from "@/util/logger";
 
 export const log = createLogger("Google");
 

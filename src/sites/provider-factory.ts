@@ -1,7 +1,7 @@
-import { createLogger } from "../util/logger.js";
-import type { Scraper, Site } from "../model.js";
+import { createLogger } from "@/util/logger";
+import type { Scraper, Site } from "@/core/model";
 
-import type { SiteProvider } from "../core/contracts.js";
+import type { SiteProvider } from "@/core/contracts";
 
 type ScraperConstructor = new (
   http: Scraper["http"],

@@ -1,11 +1,11 @@
-import { createLogger } from "../util/logger.js";
-import type { JobPost } from "../model.js";
-import { createTransport } from "../internal/http/transport.js";
-import { applyLogLevel } from "../internal/logging.js";
+import { createLogger } from "@/util/logger";
+import type { JobPost } from "@/core/model";
+import { createTransport } from "@/internal/http/transport";
+import { applyLogLevel } from "@/internal/logging";
 
-import type { CompiledSearchRequest, SiteProvider, SiteSearchResult } from "./contracts.js";
-import { SiteExecutionError } from "./errors.js";
-import { runResultPipeline } from "./result-pipeline.js";
+import type { CompiledSearchRequest, SiteProvider, SiteSearchResult } from "@/core/contracts";
+import { SiteExecutionError } from "@/core/errors";
+import { runResultPipeline } from "@/core/result-pipeline";
 
 const log = createLogger("engine");
 

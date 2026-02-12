@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
-import { compileSearchRequest } from '../src/core/request-compiler.js'
-import { Site } from '../src/model.js'
+import { compileSearchRequest } from '../src/core/request-compiler'
+import { Site } from '../src/core/model'
 
 describe('compileSearchRequest', () => {
 	it('compiles TS-native request and config into per-site scraper inputs', () => {

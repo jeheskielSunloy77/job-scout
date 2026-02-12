@@ -1,24 +1,24 @@
 import { z } from 'zod'
-import { toScraperJobType } from '../domain/employment-type.js'
-import { allJobSites, toScraperSite } from '../domain/site-mapping.js'
+import { toScraperJobType } from '@/domain/employment-type'
+import { allJobSites, toScraperSite } from '@/domain/site-mapping'
 import type {
 	JobScoutConfig,
 	JobSearchRequest,
 	JobSite,
-} from '../domain/types.js'
-import { toScraperSiteConcurrencyMap } from '../internal/http/limiter.js'
-import { normalizeRetryPolicy } from '../internal/http/retry.js'
+} from '@/domain/types'
+import { toScraperSiteConcurrencyMap } from '@/internal/http/limiter'
+import { normalizeRetryPolicy } from '@/internal/http/retry'
 import {
 	Country,
 	DescriptionFormat,
 	type ScraperInput,
 	type Site,
-} from '../model.js'
+} from '@/core/model'
 import type {
 	CompiledSearchRequest,
 	ResolvedJobScoutConfig,
-} from './contracts.js'
-import { JobScoutValidationError } from './errors.js'
+} from '@/core/contracts'
+import { JobScoutValidationError } from '@/core/errors'
 
 const jobSiteSchema = z.enum([
 	'linkedin',

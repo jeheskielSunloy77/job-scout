@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
-import { CompensationInterval } from "../src/model.js";
-import { convertToAnnual, extractSalary } from "../src/util/salary.js";
+import { CompensationInterval } from "../src/core/model";
+import { convertToAnnual, extractSalary } from "../src/util/salary";
 
 describe("extractSalary", () => {
   it("extracts yearly salary ranges", () => {

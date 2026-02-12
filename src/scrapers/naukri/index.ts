@@ -8,12 +8,12 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
-import { NaukriException } from "../../exception.js";
-import { extractEmailsFromText, markdownConverter } from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { headers as naukriHeaders } from "./constant.js";
-import { isJobRemote, parseCompanyIndustry, parseJobType } from "./util.js";
+} from "@/core/model";
+import { NaukriException } from "@/scrapers/exception";
+import { extractEmailsFromText, markdownConverter } from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { headers as naukriHeaders } from "@/scrapers/naukri/constant";
+import { isJobRemote, parseCompanyIndustry, parseJobType } from "@/scrapers/naukri/util";
 
 const log = createLogger("Naukri");
 

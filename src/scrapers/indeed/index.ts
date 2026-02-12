@@ -9,11 +9,11 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
-import { extractEmailsFromText, markdownConverter } from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { apiHeaders, jobSearchQuery } from "./constant.js";
-import { getCompensation, getJobType, isJobRemote } from "./util.js";
+} from "@/core/model";
+import { extractEmailsFromText, markdownConverter } from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { apiHeaders, jobSearchQuery } from "@/scrapers/indeed/constant";
+import { getCompensation, getJobType, isJobRemote } from "@/scrapers/indeed/util";
 
 const log = createLogger("Indeed");
 

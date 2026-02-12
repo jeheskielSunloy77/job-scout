@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio";
 import type { Element } from "domhandler";
 
-import { Country, Location } from "../../model.js";
-import { dateFormats, jobSelectors } from "./constant.js";
+import { Country, Location } from "@/core/model";
+import { dateFormats, jobSelectors } from "@/scrapers/bdjobs/constant";
 
 const monthShortMap: Record<string, number> = {
   Jan: 0,

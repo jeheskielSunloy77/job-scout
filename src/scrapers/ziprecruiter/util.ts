@@ -1,5 +1,5 @@
-import { JobType, type ScraperInput } from "../../model.js";
-import { getEnumFromJobTypeValue } from "../../util/site.js";
+import { JobType, type ScraperInput } from "@/core/model";
+import { getEnumFromJobTypeValue } from "@/util/site";
 
 export function addParams(scraperInput: ScraperInput): Record<string, string | number> {
   const params: Record<string, string | number | null | undefined> = {

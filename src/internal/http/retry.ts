@@ -1,4 +1,4 @@
-import type { RetryPolicy } from "../../util/http.js";
+import type { RetryPolicy } from "@/util/http";
 
 export function normalizeRetryPolicy(
   retry: {

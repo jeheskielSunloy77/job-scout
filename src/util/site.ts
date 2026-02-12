@@ -1,4 +1,4 @@
-import { JobType, Site, getEnumFromJobType, getJobTypeAliases } from "../model.js";
+import { JobType, Site, getEnumFromJobType, getJobTypeAliases } from "@/core/model";
 
 export function mapStrToSite(siteName: string): Site {
   const key = siteName.toUpperCase();

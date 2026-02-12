@@ -1,14 +1,14 @@
 import { describe, expect, it } from "bun:test"
 
-import type { JobSite } from '../../../src/index.js'
-import { scoutJobs, toJobRows } from '../../../src/index.js'
-import { assertRowBasics, assertSortedBySiteAndDate } from './assertions.js'
-import { getLiveTestConfig } from './env.js'
+import type { JobSite } from '../../../src/index'
+import { scoutJobs, toJobRows } from '../../../src/index'
+import { assertRowBasics, assertSortedBySiteAndDate } from './assertions'
+import { getLiveTestConfig } from './env'
 import {
 	createTransientExternalError,
 	isTransientExternalFailure,
 	runWithRetries,
-} from './retry.js'
+} from './retry'
 
 const cfg = getLiveTestConfig()
 

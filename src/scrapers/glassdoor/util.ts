@@ -3,7 +3,7 @@ import {
   CompensationInterval,
   getCompensationInterval,
   Location
-} from "../../model.js";
+} from "@/core/model";
 
 export function parseCompensation(data: {
   payPeriod?: string | null;

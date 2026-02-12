@@ -1,6 +1,6 @@
 import { expect } from "bun:test";
 
-import type { Job, JobRow, JobSite } from "../../../src/index.js";
+import type { Job, JobRow, JobSite } from "../../../src/index";
 
 export function assertBasicJobSchema(job: Job, expectedSite: JobSite): void {
   expect(typeof job.id).toBe("string");

@@ -1,10 +1,10 @@
 import * as cheerio from "cheerio";
 import type { Element } from "domhandler";
 
-import { Country, type JobPost, type JobResponse, Location, type ScraperInput, Scraper, Site } from "../../model.js";
-import { createLogger } from "../../util/logger.js";
-import { baseUrl } from "./constant.js";
-import { extractJobUrl } from "./util.js";
+import { Country, type JobPost, type JobResponse, Location, type ScraperInput, Scraper, Site } from "@/core/model";
+import { createLogger } from "@/util/logger";
+import { baseUrl } from "@/scrapers/bayt/constant";
+import { extractJobUrl } from "@/scrapers/bayt/util";
 
 const log = createLogger("Bayt");
 

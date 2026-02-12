@@ -6,11 +6,11 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
-import { extractEmailsFromText } from "../../util/format.js";
-import { extractJobType } from "../../util/salary.js";
-import { asyncParam, headersInitial, headersJobs } from "./constant.js";
-import { findJobInfo, findJobInfoInitialPage, log } from "./util.js";
+} from "@/core/model";
+import { extractEmailsFromText } from "@/util/format";
+import { extractJobType } from "@/util/salary";
+import { asyncParam, headersInitial, headersJobs } from "@/scrapers/google/constant";
+import { findJobInfo, findJobInfoInitialPage, log } from "@/scrapers/google/util";
 
 export class GoogleScraper extends Scraper {
   private readonly jobsPerPage = 10;

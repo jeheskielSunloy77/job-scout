@@ -1,6 +1,6 @@
-import { Site } from "../model.js";
-import { NaukriScraper } from "../scrapers/naukri/index.js";
+import { Site } from "@/core/model";
+import { NaukriScraper } from "@/scrapers/naukri/index";
 
-import { createSiteProvider } from "./provider-factory.js";
+import { createSiteProvider } from "@/sites/provider-factory";
 
 export const naukriProvider = createSiteProvider(Site.NAUKRI, NaukriScraper);

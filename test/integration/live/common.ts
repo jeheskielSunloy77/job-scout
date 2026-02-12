@@ -1,4 +1,4 @@
-import type { JobSearchRequest, JobSite } from "../../../src/index.js";
+import type { JobSearchRequest, JobSite } from "../../../src/index";
 
 export interface SiteScenario {
   site: JobSite;

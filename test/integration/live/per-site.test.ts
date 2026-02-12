@@ -1,14 +1,14 @@
 import { describe, expect, it } from "bun:test"
 
-import { scoutJobs } from '../../../src/index.js'
-import { assertBasicJobSchema } from './assertions.js'
-import { siteScenarios } from './common.js'
-import { getLiveTestConfig } from './env.js'
+import { scoutJobs } from '../../../src/index'
+import { assertBasicJobSchema } from './assertions'
+import { siteScenarios } from './common'
+import { getLiveTestConfig } from './env'
 import {
 	createTransientExternalError,
 	isTransientExternalFailure,
 	runWithRetries,
-} from './retry.js'
+} from './retry'
 
 const cfg = getLiveTestConfig()
 

@@ -1,11 +1,11 @@
-import { toJobRows } from '../domain/row-normalizer.js'
+import { toJobRows } from '@/domain/row-normalizer'
 import type {
 	JobRow,
 	JobScoutConfig,
 	JobSearchRequest,
-} from '../domain/types.js'
+} from '@/domain/types'
 
-import { scoutJobs } from './scout-jobs.js'
+import { scoutJobs } from '@/public/scout-jobs'
 
 export async function scoutJobRows(
 	request: JobSearchRequest,

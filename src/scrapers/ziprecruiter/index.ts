@@ -10,15 +10,15 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
+} from "@/core/model";
 import {
   extractEmailsFromText,
   markdownConverter,
   removeAttributes
-} from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { addParams, getJobTypeEnum } from "./util.js";
-import { getCookieData, headers } from "./constant.js";
+} from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { addParams, getJobTypeEnum } from "@/scrapers/ziprecruiter/util";
+import { getCookieData, headers } from "@/scrapers/ziprecruiter/constant";
 
 const log = createLogger("ZipRecruiter");
 

@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { Element } from "domhandler";
 
-import { LinkedInException } from "../../exception.js";
+import { LinkedInException } from "@/scrapers/exception";
 import {
   CompensationInterval,
   Country,
@@ -12,23 +12,23 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
+} from "@/core/model";
 import {
   extractEmailsFromText,
   markdownConverter,
   plainConverter,
   removeAttributes
-} from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { currencyParser } from "../../util/salary.js";
-import { headers } from "./constant.js";
+} from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { currencyParser } from "@/util/salary";
+import { headers } from "@/scrapers/linkedin/constant";
 import {
   isJobRemote,
   jobTypeCode,
   parseCompanyIndustry,
   parseJobLevel,
   parseJobType
-} from "./util.js";
+} from "@/scrapers/linkedin/util";
 
 const log = createLogger("LinkedIn");
 

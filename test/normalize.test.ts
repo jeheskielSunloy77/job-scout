@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
-import type { Job } from "../src/index.js";
-import { toJobRows } from "../src/index.js";
+import type { Job } from "../src/index";
+import { toJobRows } from "../src/index";
 
 describe("toJobRows", () => {
   it("normalizes jobs to row shape", () => {

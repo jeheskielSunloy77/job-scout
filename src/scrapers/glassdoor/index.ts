@@ -1,4 +1,4 @@
-import { GlassdoorException } from "../../exception.js";
+import { GlassdoorException } from "@/scrapers/exception";
 import {
   DescriptionFormat,
   type JobPost,
@@ -6,11 +6,11 @@ import {
   type ScraperInput,
   Scraper,
   Site
-} from "../../model.js";
-import { extractEmailsFromText, markdownConverter } from "../../util/format.js";
-import { createLogger } from "../../util/logger.js";
-import { fallbackToken, headers, queryTemplate } from "./constant.js";
-import { getCursorForPage, parseCompensation, parseLocation } from "./util.js";
+} from "@/core/model";
+import { extractEmailsFromText, markdownConverter } from "@/util/format";
+import { createLogger } from "@/util/logger";
+import { fallbackToken, headers, queryTemplate } from "@/scrapers/glassdoor/constant";
+import { getCursorForPage, parseCompensation, parseLocation } from "@/scrapers/glassdoor/util";
 
 const log = createLogger("Glassdoor");
 

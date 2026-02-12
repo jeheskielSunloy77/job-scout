@@ -1,4 +1,4 @@
-import { CompensationInterval, JobPost, JobType } from "../model.js";
+import { CompensationInterval, JobPost, JobType } from "@/core/model";
 
 export function currencyParser(curStr: string): number {
   let normalized = curStr.replace(/[^-0-9.,]/g, "");

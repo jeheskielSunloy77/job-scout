@@ -1,6 +1,6 @@
-import { JobType } from "../model.js";
+import { JobType } from "@/core/model";
 
-import type { EmploymentType } from "./types.js";
+import type { EmploymentType } from "@/domain/types";
 
 export function toScraperJobType(value: EmploymentType | undefined): JobType | null {
   if (!value) {
