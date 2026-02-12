@@ -47,27 +47,27 @@ export class LinkedInScraper extends Scraper {
 
     let start = scraperInput.offset ? Math.floor(scraperInput.offset / 10) * 10 : 0;
     let requestCount = 0;
-    const secondsOld = scraperInput.hours_old ? scraperInput.hours_old * 3600 : null;
+    const secondsOld = scraperInput.hoursOld ? scraperInput.hoursOld * 3600 : null;
 
     const shouldContinue = (): boolean => {
-      return jobList.length < scraperInput.results_wanted && start < 1000;
+      return jobList.length < scraperInput.resultsWanted && start < 1000;
     };
 
     while (shouldContinue()) {
       requestCount += 1;
-      log.info(`search page: ${requestCount} / ${Math.ceil(scraperInput.results_wanted / 10)}`);
+      log.info(`search page: ${requestCount} / ${Math.ceil(scraperInput.resultsWanted / 10)}`);
 
       const params: Record<string, string | number | null | undefined> = {
-        keywords: scraperInput.search_term,
+        keywords: scraperInput.searchTerm,
         location: scraperInput.location,
         distance: scraperInput.distance,
-        f_WT: scraperInput.is_remote ? 2 : null,
-        f_JT: scraperInput.job_type ? jobTypeCode(scraperInput.job_type) : null,
+        f_WT: scraperInput.isRemote ? 2 : null,
+        f_JT: scraperInput.jobType ? jobTypeCode(scraperInput.jobType) : null,
         pageNum: 0,
         start,
-        f_AL: scraperInput.easy_apply ? "true" : null,
-        f_C: scraperInput.linkedin_company_ids?.length
-          ? scraperInput.linkedin_company_ids.join(",")
+        f_AL: scraperInput.easyApply ? "true" : null,
+        f_C: scraperInput.linkedinCompanyIds?.length
+          ? scraperInput.linkedinCompanyIds.join(",")
           : null
       };
       if (secondsOld != null) {
@@ -125,7 +125,7 @@ export class LinkedInScraper extends Scraper {
         seenIds.add(jobId);
 
         try {
-          const job = await this.processJob($, card, jobId, scraperInput.linkedin_fetch_description, scraperInput);
+          const job = await this.processJob($, card, jobId, scraperInput.linkedinFetchDescription, scraperInput);
           if (job) {
             jobList.push(job);
           }
@@ -143,7 +143,7 @@ export class LinkedInScraper extends Scraper {
       }
     }
 
-    return { jobs: jobList.slice(0, scraperInput.results_wanted) };
+    return { jobs: jobList.slice(0, scraperInput.resultsWanted) };
   }
 
   private async processJob(
@@ -244,9 +244,9 @@ export class LinkedInScraper extends Scraper {
     let description: string | null = null;
     if (descriptionNode.length > 0) {
       const cleanedHtml = removeAttributes($.html(descriptionNode));
-      if (scraperInput.description_format === DescriptionFormat.MARKDOWN) {
+      if (scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN) {
         description = markdownConverter(cleanedHtml);
-      } else if (scraperInput.description_format === DescriptionFormat.PLAIN) {
+      } else if (scraperInput.descriptionFormat === DescriptionFormat.PLAIN) {
         description = plainConverter(cleanedHtml);
       } else {
         description = cleanedHtml;

@@ -1,13 +1,12 @@
 import { z } from 'zod'
-
-import { toLegacyJobType } from '../domain/employment-type.js'
-import { allJobSites, toLegacySite } from '../domain/site-mapping.js'
+import { toScraperJobType } from '../domain/employment-type.js'
+import { allJobSites, toScraperSite } from '../domain/site-mapping.js'
 import type {
 	JobScoutConfig,
 	JobSearchRequest,
 	JobSite,
 } from '../domain/types.js'
-import { toLegacySiteConcurrencyMap } from '../internal/http/limiter.js'
+import { toScraperSiteConcurrencyMap } from '../internal/http/limiter.js'
 import { normalizeRetryPolicy } from '../internal/http/retry.js'
 import {
 	Country,
@@ -15,7 +14,6 @@ import {
 	type ScraperInput,
 	type Site,
 } from '../model.js'
-
 import type {
 	CompiledSearchRequest,
 	ResolvedJobScoutConfig,
@@ -140,69 +138,6 @@ const configSchema = z
 
 type ParsedJobSearchRequest = z.infer<typeof requestSchema>
 
-const legacyKeyMap: Record<string, string> = {
-	site_name: 'sites',
-	search_term: 'query',
-	google_search_term: 'google.query',
-	results_wanted: 'pagination.limitPerSite',
-	country_indeed: 'indeed.country',
-	is_remote: 'filters.remote',
-	job_type: 'filters.employmentType',
-	easy_apply: 'filters.easyApply',
-	hours_old: 'filters.postedWithinHours',
-	linkedin_fetch_description: 'linkedin.fetchDescription',
-	linkedin_company_ids: 'linkedin.companyIds',
-	enforce_annual_salary: 'output.annualizeSalary',
-	user_agent: 'transport.userAgent',
-	ca_cert: 'transport.caCertPath',
-	verbose: 'logging.level',
-	proxies: 'transport.proxies',
-	offset: 'pagination.offset',
-	description_format: 'output.descriptionFormat',
-	distance: 'filters.distanceMiles',
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function collectLegacyKeys(value: unknown): string[] {
-	if (!isPlainObject(value)) {
-		return []
-	}
-
-	const hits: string[] = []
-	for (const [key] of Object.entries(value)) {
-		if (key in legacyKeyMap) {
-			hits.push(key)
-		}
-	}
-
-	return hits
-}
-
-function assertNoLegacyKeys(
-	payload: unknown,
-	label: 'request' | 'config',
-): void {
-	const keys = collectLegacyKeys(payload)
-	if (keys.length === 0) {
-		return
-	}
-
-	const details = keys
-		.map((path) => {
-			const key = path.split('.').at(-1) ?? path
-			const replacement = legacyKeyMap[key]
-			return replacement ? `'${path}' (use '${replacement}')` : `'${path}'`
-		})
-		.join(', ')
-
-	throw new JobScoutValidationError(
-		`Legacy snake_case keys are not supported in ${label}: ${details}. See MIGRATION.md for the full mapping.`,
-	)
-}
-
 function zodErrorToMessage(error: z.ZodError): string {
 	return error.issues
 		.map((issue) => {
@@ -283,7 +218,7 @@ function resolveConfig(config: JobScoutConfig): ResolvedJobScoutConfig {
 	const parsed = parsedConfig.data
 	const proxies = parsed.transport?.proxies ?? []
 	const mappedConcurrency = parsed.performance?.maxConcurrencyPerSite
-		? toLegacySiteConcurrencyMap(parsed.performance.maxConcurrencyPerSite)
+		? toScraperSiteConcurrencyMap(parsed.performance.maxConcurrencyPerSite)
 		: undefined
 	const retryPolicy = parsed.performance?.retry
 		? normalizeRetryPolicy(parsed.performance.retry)
@@ -332,22 +267,22 @@ function compileScraperInput(
 	config: ResolvedJobScoutConfig,
 ): ScraperInput {
 	return {
-		site_type: [site],
+		siteType: [site],
 		country,
-		search_term: request.query ?? null,
-		google_search_term: request.google?.query ?? null,
+		searchTerm: request.query ?? null,
+		googleSearchTerm: request.google?.query ?? null,
 		location: request.location ?? null,
 		distance: request.filters?.distanceMiles ?? 50,
-		is_remote: request.filters?.remote ?? false,
-		job_type: toLegacyJobType(request.filters?.employmentType),
-		easy_apply: request.filters?.easyApply ?? null,
+		isRemote: request.filters?.remote ?? false,
+		jobType: toScraperJobType(request.filters?.employmentType),
+		easyApply: request.filters?.easyApply ?? null,
 		offset: request.pagination?.offset ?? 0,
-		linkedin_fetch_description: request.linkedin?.fetchDescription ?? false,
-		linkedin_company_ids: request.linkedin?.companyIds ?? null,
-		description_format: config.output.descriptionFormat,
-		request_timeout: 60,
-		results_wanted: request.pagination?.limitPerSite ?? 15,
-		hours_old: request.filters?.postedWithinHours ?? null,
+		linkedinFetchDescription: request.linkedin?.fetchDescription ?? false,
+		linkedinCompanyIds: request.linkedin?.companyIds ?? null,
+		descriptionFormat: config.output.descriptionFormat,
+		requestTimeout: 60,
+		resultsWanted: request.pagination?.limitPerSite ?? 15,
+		hoursOld: request.filters?.postedWithinHours ?? null,
 	}
 }
 
@@ -355,9 +290,6 @@ export function compileSearchRequest(
 	request: JobSearchRequest,
 	config: JobScoutConfig = {},
 ): CompiledSearchRequest {
-	assertNoLegacyKeys(request, 'request')
-	assertNoLegacyKeys(config, 'config')
-
 	const parsedRequest = requestSchema.safeParse(request)
 	if (!parsedRequest.success) {
 		throw new JobScoutValidationError(
@@ -373,11 +305,11 @@ export function compileSearchRequest(
 	const country = resolveCountry(normalizedRequest.indeed?.country)
 
 	const siteRequests = [...new Set(selectedSites)]
-		.map((site) => toLegacySite(site))
-		.map((legacySite) => ({
-			site: legacySite,
+		.map((site) => toScraperSite(site))
+		.map((scraperSite) => ({
+			site: scraperSite,
 			scraperInput: compileScraperInput(
-				legacySite,
+				scraperSite,
 				normalizedRequest,
 				country,
 				resolvedConfig,

@@ -20,11 +20,11 @@ export class BaytScraper extends Scraper {
   override async scrape(scraperInput: ScraperInput): Promise<JobResponse> {
     const jobs: JobPost[] = [];
     let page = 1;
-    const wanted = scraperInput.results_wanted || 10;
+    const wanted = scraperInput.resultsWanted || 10;
 
     while (jobs.length < wanted) {
       log.info(`Fetching Bayt jobs page ${page}`);
-      const cards = await this.fetchJobs(scraperInput.search_term ?? "", page);
+      const cards = await this.fetchJobs(scraperInput.searchTerm ?? "", page);
       if (cards.length === 0) {
         break;
       }
@@ -50,7 +50,7 @@ export class BaytScraper extends Scraper {
     }
 
     return {
-      jobs: jobs.slice(0, scraperInput.results_wanted)
+      jobs: jobs.slice(0, scraperInput.resultsWanted)
     };
   }
 

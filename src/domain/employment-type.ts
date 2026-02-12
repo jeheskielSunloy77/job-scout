@@ -2,7 +2,7 @@ import { JobType } from "../model.js";
 
 import type { EmploymentType } from "./types.js";
 
-export function toLegacyJobType(value: EmploymentType | undefined): JobType | null {
+export function toScraperJobType(value: EmploymentType | undefined): JobType | null {
   if (!value) {
     return null;
   }

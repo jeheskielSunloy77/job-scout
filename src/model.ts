@@ -592,22 +592,22 @@ export enum SalarySource {
 }
 
 export interface ScraperInput {
-  site_type: Site[];
-  search_term?: string | null;
-  google_search_term?: string | null;
+  siteType: Site[];
+  searchTerm?: string | null;
+  googleSearchTerm?: string | null;
   location?: string | null;
   country?: Country;
   distance?: number | null;
-  is_remote: boolean;
-  job_type?: JobType | null;
-  easy_apply?: boolean | null;
+  isRemote: boolean;
+  jobType?: JobType | null;
+  easyApply?: boolean | null;
   offset: number;
-  linkedin_fetch_description: boolean;
-  linkedin_company_ids?: number[] | null;
-  description_format: DescriptionFormat;
-  request_timeout: number;
-  results_wanted: number;
-  hours_old?: number | null;
+  linkedinFetchDescription: boolean;
+  linkedinCompanyIds?: number[] | null;
+  descriptionFormat: DescriptionFormat;
+  requestTimeout: number;
+  resultsWanted: number;
+  hoursOld?: number | null;
 }
 
 export interface ScrapeJobsPerformanceConfig {
@@ -616,30 +616,6 @@ export interface ScrapeJobsPerformanceConfig {
   retryPolicy?: RetryPolicy;
   requestTimeoutMs?: number;
   enableAdaptiveConcurrency?: boolean;
-}
-
-export interface ScrapeJobsInput {
-  site_name?: string | string[] | Site | Site[] | null;
-  search_term?: string | null;
-  google_search_term?: string | null;
-  location?: string | null;
-  distance?: number | null;
-  is_remote?: boolean;
-  job_type?: string | JobType | null;
-  easy_apply?: boolean | null;
-  results_wanted?: number;
-  country_indeed?: string;
-  proxies?: string[] | string | null;
-  ca_cert?: string | null;
-  description_format?: DescriptionFormat | string;
-  linkedin_fetch_description?: boolean;
-  linkedin_company_ids?: number[] | null;
-  offset?: number;
-  hours_old?: number | null;
-  enforce_annual_salary?: boolean;
-  verbose?: number;
-  user_agent?: string | null;
-  performance?: ScrapeJobsPerformanceConfig;
 }
 
 export interface ScraperOptions {

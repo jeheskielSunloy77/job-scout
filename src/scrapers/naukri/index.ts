@@ -61,30 +61,30 @@ export class NaukriScraper extends Scraper {
     let start = scraperInput.offset || 0;
     let page = Math.floor(start / this.jobsPerPage) + 1;
     let requestCount = 0;
-    const secondsOld = scraperInput.hours_old ? scraperInput.hours_old * 3600 : null;
+    const secondsOld = scraperInput.hoursOld ? scraperInput.hoursOld * 3600 : null;
 
     const shouldContinue = (): boolean => {
-      return jobs.length < scraperInput.results_wanted && page <= 50;
+      return jobs.length < scraperInput.resultsWanted && page <= 50;
     };
 
     while (shouldContinue()) {
       requestCount += 1;
       log.info(
-        `Scraping page ${requestCount} / ${Math.ceil(scraperInput.results_wanted / this.jobsPerPage)} for search term: ${scraperInput.search_term}`
+        `Scraping page ${requestCount} / ${Math.ceil(scraperInput.resultsWanted / this.jobsPerPage)} for search term: ${scraperInput.searchTerm}`
       );
 
       const params: Record<string, string | number | null | undefined> = {
         noOfResults: this.jobsPerPage,
         urlType: "search_by_keyword",
         searchType: "adv",
-        keyword: scraperInput.search_term,
+        keyword: scraperInput.searchTerm,
         pageNo: page,
-        k: scraperInput.search_term,
-        seoKey: `${(scraperInput.search_term ?? "").toLowerCase().replace(/\s+/g, "-")}-jobs`,
+        k: scraperInput.searchTerm,
+        seoKey: `${(scraperInput.searchTerm ?? "").toLowerCase().replace(/\s+/g, "-")}-jobs`,
         src: "jobsearchDesk",
         latLong: "",
         location: scraperInput.location,
-        remote: scraperInput.is_remote ? "true" : null
+        remote: scraperInput.isRemote ? "true" : null
       };
       if (secondsOld) {
         params.days = Math.floor(secondsOld / 86_400);
@@ -132,7 +132,7 @@ export class NaukriScraper extends Scraper {
         seenIds.add(jobId);
 
         try {
-          const fetchDesc = scraperInput.linkedin_fetch_description;
+          const fetchDesc = scraperInput.linkedinFetchDescription;
           const parsed = this.processJob(job, jobId, fetchDesc, scraperInput);
           if (parsed) {
             jobs.push(parsed);
@@ -155,7 +155,7 @@ export class NaukriScraper extends Scraper {
 
     log.info(`Scraping completed. Total jobs collected: ${jobs.length}`);
     return {
-      jobs: jobs.slice(0, scraperInput.results_wanted)
+      jobs: jobs.slice(0, scraperInput.resultsWanted)
     };
   }
 
@@ -180,7 +180,7 @@ export class NaukriScraper extends Scraper {
     const companyIndustry = rawDescription ? parseCompanyIndustry(rawDescription) : null;
 
     let description = rawDescription;
-    if (description && scraperInput.description_format === DescriptionFormat.MARKDOWN) {
+    if (description && scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN) {
       description = markdownConverter(description);
     }
 

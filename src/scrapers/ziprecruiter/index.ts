@@ -60,9 +60,9 @@ export class ZipRecruiterScraper extends Scraper {
     const seenUrls = new Set<string>();
     let continueToken: string | null = null;
 
-    const maxPages = Math.ceil(scraperInput.results_wanted / this.jobsPerPage);
+    const maxPages = Math.ceil(scraperInput.resultsWanted / this.jobsPerPage);
     for (let page = 1; page <= maxPages; page += 1) {
-      if (jobList.length >= scraperInput.results_wanted) {
+      if (jobList.length >= scraperInput.resultsWanted) {
         break;
       }
 
@@ -83,7 +83,7 @@ export class ZipRecruiterScraper extends Scraper {
       }
     }
 
-    return { jobs: jobList.slice(0, scraperInput.results_wanted) };
+    return { jobs: jobList.slice(0, scraperInput.resultsWanted) };
   }
 
   private async findJobsInPage(
@@ -160,7 +160,7 @@ export class ZipRecruiterScraper extends Scraper {
     seenUrls.add(jobUrl);
 
     let description = job.job_description?.trim() ?? "";
-    if (scraperInput.description_format === DescriptionFormat.MARKDOWN) {
+    if (scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN) {
       description = markdownConverter(description) ?? description;
     }
 
@@ -230,7 +230,7 @@ export class ZipRecruiterScraper extends Scraper {
         : "";
 
       let descriptionFull = `${jobDescriptionClean}${companyDescriptionClean}`;
-      if (scraperInput.description_format === DescriptionFormat.MARKDOWN) {
+      if (scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN) {
         descriptionFull = markdownConverter(descriptionFull) ?? descriptionFull;
       }
 

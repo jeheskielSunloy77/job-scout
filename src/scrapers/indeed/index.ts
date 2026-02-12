@@ -45,9 +45,9 @@ export class IndeedScraper extends Scraper {
     let cursor: string | null = null;
     let page = 1;
 
-    while (seenUrls.size < scraperInput.results_wanted + scraperInput.offset) {
+    while (seenUrls.size < scraperInput.resultsWanted + scraperInput.offset) {
       log.info(
-        `search page: ${page} / ${Math.ceil(scraperInput.results_wanted / this.jobsPerPage)}`
+        `search page: ${page} / ${Math.ceil(scraperInput.resultsWanted / this.jobsPerPage)}`
       );
 
       const { jobsOnPage, nextCursor } = await this.scrapePage(scraperInput, cursor, baseUrl, apiCountryCode, seenUrls);
@@ -65,7 +65,7 @@ export class IndeedScraper extends Scraper {
     }
 
     return {
-      jobs: jobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.results_wanted)
+      jobs: jobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.resultsWanted)
     };
   }
 
@@ -77,7 +77,7 @@ export class IndeedScraper extends Scraper {
     seenUrls: Set<string>
   ): Promise<{ jobsOnPage: JobPost[]; nextCursor: string | null }> {
     const filters = this.buildFilters(scraperInput);
-    const searchTerm = scraperInput.search_term ? scraperInput.search_term.replace(/"/g, '\\"') : "";
+    const searchTerm = scraperInput.searchTerm ? scraperInput.searchTerm.replace(/"/g, '\\"') : "";
 
     const query = jobSearchQuery
       .replace("{what}", searchTerm ? `what: \"${searchTerm}\"` : "")
@@ -134,18 +134,18 @@ export class IndeedScraper extends Scraper {
   }
 
   private buildFilters(scraperInput: ScraperInput): string {
-    if (scraperInput.hours_old) {
+    if (scraperInput.hoursOld) {
       return `
             filters: {
                 date: {
                   field: \"dateOnIndeed\",
-                  start: \"${scraperInput.hours_old}h\"
+                  start: \"${scraperInput.hoursOld}h\"
                 }
             }
             `;
     }
 
-    if (scraperInput.easy_apply) {
+    if (scraperInput.easyApply) {
       return `
             filters: {
                 keyword: {
@@ -156,7 +156,7 @@ export class IndeedScraper extends Scraper {
             `;
     }
 
-    if (!scraperInput.job_type && !scraperInput.is_remote) {
+    if (!scraperInput.jobType && !scraperInput.isRemote) {
       return "";
     }
 
@@ -168,13 +168,13 @@ export class IndeedScraper extends Scraper {
     };
 
     const keys: string[] = [];
-    if (scraperInput.job_type) {
-      const key = jobTypeKeyMapping[scraperInput.job_type];
+    if (scraperInput.jobType) {
+      const key = jobTypeKeyMapping[scraperInput.jobType];
       if (key) {
         keys.push(key);
       }
     }
-    if (scraperInput.is_remote) {
+    if (scraperInput.isRemote) {
       keys.push("DSQF7");
     }
     if (keys.length === 0) {
@@ -214,7 +214,7 @@ export class IndeedScraper extends Scraper {
 
     const descriptionHtml = (rawJob.description as { html?: string } | undefined)?.html ?? "";
     const description =
-      scraperInput.description_format === DescriptionFormat.MARKDOWN
+      scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN
         ? markdownConverter(descriptionHtml)
         : descriptionHtml;
 

@@ -22,7 +22,7 @@ export class GoogleScraper extends Scraper {
   }
 
   override async scrape(scraperInput: ScraperInput): Promise<JobResponse> {
-    const wanted = Math.min(900, scraperInput.results_wanted);
+    const wanted = Math.min(900, scraperInput.resultsWanted);
     const seenUrls = new Set<string>();
 
     const { forwardCursor: initialCursor, jobs: initialJobs } = await this.getInitialCursorAndJobs(
@@ -33,7 +33,7 @@ export class GoogleScraper extends Scraper {
     if (!initialCursor) {
       log.warn("initial cursor not found, try changing your query or there were at most 10 results");
       return {
-        jobs: initialJobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.results_wanted)
+        jobs: initialJobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.resultsWanted)
       };
     }
 
@@ -60,7 +60,7 @@ export class GoogleScraper extends Scraper {
     }
 
     return {
-      jobs: jobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.results_wanted)
+      jobs: jobs.slice(scraperInput.offset, scraperInput.offset + scraperInput.resultsWanted)
     };
   }
 
@@ -68,7 +68,7 @@ export class GoogleScraper extends Scraper {
     scraperInput: ScraperInput,
     seenUrls: Set<string>
   ): Promise<{ forwardCursor: string | null; jobs: JobPost[] }> {
-    let query = `${scraperInput.search_term ?? ""} jobs`.trim();
+    let query = `${scraperInput.searchTerm ?? ""} jobs`.trim();
 
     const getTimeRange = (hoursOld: number): string => {
       if (hoursOld <= 24) {
@@ -90,24 +90,24 @@ export class GoogleScraper extends Scraper {
       contract: "Contract"
     };
 
-    if (scraperInput.job_type && jobTypeMapping[scraperInput.job_type]) {
-      query += ` ${jobTypeMapping[scraperInput.job_type]}`;
+    if (scraperInput.jobType && jobTypeMapping[scraperInput.jobType]) {
+      query += ` ${jobTypeMapping[scraperInput.jobType]}`;
     }
 
     if (scraperInput.location) {
       query += ` near ${scraperInput.location}`;
     }
 
-    if (scraperInput.hours_old) {
-      query += ` ${getTimeRange(scraperInput.hours_old)}`;
+    if (scraperInput.hoursOld) {
+      query += ` ${getTimeRange(scraperInput.hoursOld)}`;
     }
 
-    if (scraperInput.is_remote) {
+    if (scraperInput.isRemote) {
       query += " remote";
     }
 
-    if (scraperInput.google_search_term) {
-      query = scraperInput.google_search_term;
+    if (scraperInput.googleSearchTerm) {
+      query = scraperInput.googleSearchTerm;
     }
 
     const response = await this.http.requestText(this.url, {

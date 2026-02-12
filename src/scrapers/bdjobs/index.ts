@@ -37,10 +37,10 @@ export class BDJobsScraper extends Scraper {
 
     const params: Record<string, string | number> = {
       ...searchParams,
-      txtsearch: scraperInput.search_term ?? ""
+      txtsearch: scraperInput.searchTerm ?? ""
     };
 
-    const shouldContinue = (): boolean => jobs.length < scraperInput.results_wanted;
+    const shouldContinue = (): boolean => jobs.length < scraperInput.resultsWanted;
 
     while (shouldContinue()) {
       requestCount += 1;
@@ -54,7 +54,7 @@ export class BDJobsScraper extends Scraper {
         const response = await this.http.requestText(this.searchUrl, {
           method: "GET",
           query: params,
-          timeoutMs: scraperInput.request_timeout * 1000,
+          timeoutMs: scraperInput.requestTimeout * 1000,
           headers: {
             ...headers,
             ...(this.options.userAgent ? { "User-Agent": this.options.userAgent } : {})
@@ -102,7 +102,7 @@ export class BDJobsScraper extends Scraper {
     }
 
     return {
-      jobs: jobs.slice(0, scraperInput.results_wanted)
+      jobs: jobs.slice(0, scraperInput.resultsWanted)
     };
   }
 
@@ -291,7 +291,7 @@ export class BDJobsScraper extends Scraper {
         if (descriptionElement && descriptionElement.length > 0) {
           const cleaned = removeAttributes($.html(descriptionElement) ?? "");
           description =
-            scraperInput.description_format === DescriptionFormat.MARKDOWN
+            scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN
               ? (markdownConverter(cleaned) ?? cleaned)
               : cleaned;
         }

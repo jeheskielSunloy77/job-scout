@@ -32,7 +32,7 @@ export class GlassdoorScraper extends Scraper {
   }
 
   override async scrape(scraperInput: ScraperInput): Promise<JobResponse> {
-    const wanted = Math.min(900, scraperInput.results_wanted);
+    const wanted = Math.min(900, scraperInput.resultsWanted);
     const country = scraperInput.country;
     if (!country) {
       return { jobs: [] };
@@ -47,7 +47,7 @@ export class GlassdoorScraper extends Scraper {
       ...(this.options.userAgent ? { "user-agent": this.options.userAgent } : {})
     };
 
-    const location = await this.getLocation(baseUrl, scraperInput.location ?? null, scraperInput.is_remote, requestHeaders);
+    const location = await this.getLocation(baseUrl, scraperInput.location ?? null, scraperInput.isRemote, requestHeaders);
     if (!location) {
       log.error("Glassdoor: location not parsed");
       return { jobs: [] };
@@ -86,7 +86,7 @@ export class GlassdoorScraper extends Scraper {
     }
 
     return {
-      jobs: jobs.slice(0, scraperInput.results_wanted)
+      jobs: jobs.slice(0, scraperInput.resultsWanted)
     };
   }
 
@@ -199,7 +199,7 @@ export class GlassdoorScraper extends Scraper {
       baseUrl,
       requestHeaders,
       listingId,
-      scraperInput.description_format
+      scraperInput.descriptionFormat
     );
 
     const employer = (header.employer as Record<string, unknown> | undefined) ?? {};
@@ -370,10 +370,10 @@ export class GlassdoorScraper extends Scraper {
     pageNum: number,
     cursor: string | null
   ): string {
-    const fromAge = scraperInput.hours_old ? Math.max(Math.floor(scraperInput.hours_old / 24), 1) : null;
+    const fromAge = scraperInput.hoursOld ? Math.max(Math.floor(scraperInput.hoursOld / 24), 1) : null;
     const filterParams: Array<{ filterKey: string; values: string }> = [];
 
-    if (scraperInput.easy_apply) {
+    if (scraperInput.easyApply) {
       filterParams.push({ filterKey: "applicationType", values: "1" });
     }
 
@@ -381,8 +381,8 @@ export class GlassdoorScraper extends Scraper {
       filterParams.push({ filterKey: "fromAge", values: String(fromAge) });
     }
 
-    if (scraperInput.job_type) {
-      filterParams.push({ filterKey: "jobType", values: scraperInput.job_type });
+    if (scraperInput.jobType) {
+      filterParams.push({ filterKey: "jobType", values: scraperInput.jobType });
     }
 
     return JSON.stringify([
@@ -391,7 +391,7 @@ export class GlassdoorScraper extends Scraper {
         variables: {
           excludeJobListingIds: [],
           filterParams,
-          keyword: scraperInput.search_term,
+          keyword: scraperInput.searchTerm,
           numJobsToShow: 30,
           locationType,
           locationId,

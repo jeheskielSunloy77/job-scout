@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { JobScoutValidationError } from '../src/core/errors.js'
 import { compileSearchRequest } from '../src/core/request-compiler.js'
-import type { JobSearchRequest } from '../src/index.js'
 import { Site } from '../src/model.js'
 
 describe('compileSearchRequest', () => {
@@ -46,10 +44,10 @@ describe('compileSearchRequest', () => {
 		expect(compiled.siteRequests[1]?.site).toBe(Site.ZIP_RECRUITER)
 
 		const first = compiled.siteRequests[0]
-		expect(first?.scraperInput.search_term).toBe('software engineer')
+		expect(first?.scraperInput.searchTerm).toBe('software engineer')
 		expect(first?.scraperInput.distance).toBe(25)
-		expect(first?.scraperInput.is_remote).toBe(true)
-		expect(first?.scraperInput.results_wanted).toBe(20)
+		expect(first?.scraperInput.isRemote).toBe(true)
+		expect(first?.scraperInput.resultsWanted).toBe(20)
 		expect(first?.scraperInput.offset).toBe(5)
 		expect(first?.scraperOptions.userAgent).toBe('JobScoutTest/1.0')
 
@@ -57,12 +55,12 @@ describe('compileSearchRequest', () => {
 		expect(compiled.config.output.annualizeSalary).toBe(true)
 	})
 
-	it('rejects legacy snake_case request keys', () => {
+	it('rejects unknown request keys', () => {
 		expect(() =>
 			compileSearchRequest({
-				site_name: ['indeed'],
-			} as unknown as JobSearchRequest),
-		).toThrow(JobScoutValidationError)
+				unknown: true,
+			} as any),
+		).toThrow('Invalid JobSearchRequest')
 	})
 
 	it('requires google.query when google is selected', () => {

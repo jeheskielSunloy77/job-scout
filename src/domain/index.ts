@@ -13,7 +13,7 @@ export type {
 	SalarySourceType,
 } from './types.js'
 
-export { toDomainEmploymentType, toLegacyJobType } from './employment-type.js'
+export { toDomainEmploymentType, toScraperJobType } from './employment-type.js'
 export { toDomainJob } from './mapper.js'
 export { toJobRow, toJobRows } from './row-normalizer.js'
-export { allJobSites, toDomainSite, toLegacySite } from './site-mapping.js'
+export { allJobSites, toDomainSite, toScraperSite } from './site-mapping.js'

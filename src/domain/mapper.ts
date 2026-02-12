@@ -1,10 +1,10 @@
 import {
   CompensationInterval,
   SalarySource,
-  type JobPost as LegacyJobPost,
-  type Location as LegacyLocation,
-  type Compensation as LegacyCompensation,
-  type JobType as LegacyJobType,
+  type JobPost as ScraperJobPost,
+  type Location as ScraperLocation,
+  type Compensation as ScraperCompensation,
+  type JobType as ScraperJobType,
   Site
 } from "../model.js";
 
@@ -41,7 +41,7 @@ function mapCompensationInterval(
   }
 }
 
-function mapCompensation(value: LegacyCompensation | null | undefined): JobCompensation | null {
+function mapCompensation(value: ScraperCompensation | null | undefined): JobCompensation | null {
   if (!value) {
     return null;
   }
@@ -54,7 +54,7 @@ function mapCompensation(value: LegacyCompensation | null | undefined): JobCompe
   };
 }
 
-function mapLocation(value: LegacyLocation | null | undefined): JobLocation | null {
+function mapLocation(value: ScraperLocation | null | undefined): JobLocation | null {
   if (!value) {
     return null;
   }
@@ -74,7 +74,7 @@ function mapLocation(value: LegacyLocation | null | undefined): JobLocation | nu
   };
 }
 
-function mapEmploymentTypes(value: LegacyJobType[] | null | undefined): Job["employmentTypes"] {
+function mapEmploymentTypes(value: ScraperJobType[] | null | undefined): Job["employmentTypes"] {
   if (!value) {
     return null;
   }
@@ -89,12 +89,12 @@ function mapSalarySource(value: SalarySource | null | undefined): SalarySourceTy
   return value === SalarySource.DIRECT_DATA ? "directData" : "description";
 }
 
-export function toDomainJob(job: LegacyJobPost): Job {
-  const legacySite = job.site ?? Site.BAYT;
+export function toDomainJob(job: ScraperJobPost): Job {
+  const scraperSite = job.site ?? Site.BAYT;
 
   return {
     id: job.id ?? null,
-    site: toDomainSite(legacySite),
+    site: toDomainSite(scraperSite),
     title: job.title,
     companyName: job.company_name ?? null,
     jobUrl: job.job_url,
