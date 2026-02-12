@@ -8,7 +8,7 @@ import type {
 } from '@/core/model'
 import type { HttpClient, HttpClientConfig } from '@/util/http'
 
-import type { JobSearchRequest } from '@/domain/types'
+import type { JobSearchRequestForSites, JobSite } from '@/domain/types'
 
 export interface ResolvedJobScoutConfig {
 	raw: unknown
@@ -32,8 +32,10 @@ export interface CompiledSiteRequest {
 	scraperOptions: ScraperOptions
 }
 
-export interface CompiledSearchRequest {
-	request: JobSearchRequest
+export interface CompiledSearchRequest<
+	Sites extends readonly JobSite[] = readonly JobSite[],
+> {
+	request: JobSearchRequestForSites<Sites>
 	config: ResolvedJobScoutConfig
 	country: Country
 	siteRequests: CompiledSiteRequest[]

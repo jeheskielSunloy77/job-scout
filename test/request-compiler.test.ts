@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
-import { compileSearchRequest } from '../src/core/request-compiler'
 import { Site } from '../src/core/model'
+import { compileSearchRequest } from '../src/core/request-compiler'
 
 describe('compileSearchRequest', () => {
 	it('compiles TS-native request and config into per-site scraper inputs', () => {
@@ -63,12 +63,20 @@ describe('compileSearchRequest', () => {
 		).toThrow('Invalid JobSearchRequest')
 	})
 
+	it('requires sites to be provided', () => {
+		expect(() =>
+			compileSearchRequest({
+				query: 'software engineer',
+			} as any),
+		).toThrow('Invalid JobSearchRequest')
+	})
+
 	it('requires google.query when google is selected', () => {
 		expect(() =>
 			compileSearchRequest({
 				sites: ['google'],
 				query: 'software engineer',
-			}),
+			} as any),
 		).toThrow('google.query is required')
 	})
 
@@ -81,7 +89,7 @@ describe('compileSearchRequest', () => {
 					postedWithinHours: 24,
 					easyApply: true,
 				},
-			}),
+			} as any),
 		).toThrow('Indeed only supports one filter group')
 	})
 })

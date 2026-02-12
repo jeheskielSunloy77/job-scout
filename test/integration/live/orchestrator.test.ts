@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test"
+import { describe, expect, it } from 'bun:test'
 
 import type { JobSite } from '../../../src/index'
 import { scoutJobs, toJobRows } from '../../../src/index'
@@ -26,8 +26,7 @@ describe('Live Integration - Orchestrator', () => {
 					pagination: { limitPerSite: 1 },
 					filters: { postedWithinHours: 72 },
 					google: {
-						query:
-							'software engineer jobs near San Francisco, CA since yesterday',
+						query: 'software engineer jobs near San Francisco, CA since yesterday',
 					},
 					indeed: { country: cfg.countryIndeed },
 				}

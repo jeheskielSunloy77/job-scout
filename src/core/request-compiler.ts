@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { toScraperJobType } from '@/domain/employment-type'
-import { allJobSites, toScraperSite } from '@/domain/site-mapping'
+import { toScraperSite } from '@/domain/site-mapping'
 import type {
 	JobScoutConfig,
-	JobSearchRequest,
+	JobSearchRequestForSites,
 	JobSite,
 } from '@/domain/types'
 import { toScraperSiteConcurrencyMap } from '@/internal/http/limiter'
@@ -42,7 +42,7 @@ const employmentTypeSchema = z.enum([
 
 const requestSchema = z
 	.object({
-		sites: z.array(jobSiteSchema).min(1).optional(),
+		sites: z.array(jobSiteSchema).min(1),
 		query: z.string().trim().min(1).optional(),
 		location: z.string().trim().min(1).optional(),
 		pagination: z
@@ -286,10 +286,10 @@ function compileScraperInput(
 	}
 }
 
-export function compileSearchRequest(
-	request: JobSearchRequest,
+export function compileSearchRequest<const Sites extends readonly JobSite[]>(
+	request: JobSearchRequestForSites<Sites>,
 	config: JobScoutConfig = {},
-): CompiledSearchRequest {
+): CompiledSearchRequest<Sites> {
 	const parsedRequest = requestSchema.safeParse(request)
 	if (!parsedRequest.success) {
 		throw new JobScoutValidationError(
@@ -298,7 +298,7 @@ export function compileSearchRequest(
 	}
 
 	const normalizedRequest = parsedRequest.data
-	const selectedSites = normalizedRequest.sites ?? allJobSites
+	const selectedSites = normalizedRequest.sites
 	enforceSiteFilterRules(normalizedRequest, selectedSites)
 
 	const resolvedConfig = resolveConfig(config)
@@ -318,7 +318,7 @@ export function compileSearchRequest(
 		}))
 
 	return {
-		request: normalizedRequest as JobSearchRequest,
+		request: normalizedRequest as unknown as JobSearchRequestForSites<Sites>,
 		config: resolvedConfig,
 		country,
 		siteRequests,

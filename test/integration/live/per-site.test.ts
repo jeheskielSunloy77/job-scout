@@ -38,7 +38,7 @@ describe('Live Integration - Per Scraper', () => {
 						},
 					}
 
-					const result = await scoutJobs(request, config)
+					const result = await scoutJobs(request as any, config)
 					if (result.length < 1) {
 						throw createTransientExternalError(
 							`site=${scenario.site} returned zero jobs for live query`,

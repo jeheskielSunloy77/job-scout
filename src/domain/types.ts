@@ -113,32 +113,136 @@ export interface JobRow {
 	workFromHomeType: string | null
 }
 
-export interface JobSearchRequest {
-	sites?: JobSite[]
+export type NonEmptyArray<T> = readonly [T, ...T[]]
+
+export type HasSite<
+	Sites extends readonly JobSite[],
+	SiteName extends JobSite,
+> = number extends Sites['length'] ? true : SiteName extends Sites[number]
+	? true
+	: false
+
+type EnsureSites<Sites extends readonly JobSite[]> =
+	number extends Sites['length']
+		? Sites
+		: Sites extends NonEmptyArray<JobSite>
+			? Sites
+			: never
+
+type JobSearchPagination = {
+	limitPerSite?: number
+	offset?: number
+}
+
+type JobSearchLinkedInOptions = {
+	fetchDescription?: boolean
+	companyIds?: number[]
+}
+
+type JobSearchIndeedOptions = {
+	country?: string
+}
+
+type JobSearchGoogleOptions = {
+	query?: string
+}
+
+type JobSearchRequiredGoogleOptions = {
+	query: string
+}
+
+type JobSearchFiltersGeneral = {
+	distanceMiles?: number
+	remote?: boolean
+	easyApply?: boolean
+	employmentType?: EmploymentType
+	postedWithinHours?: number
+}
+
+type JobSearchFiltersLinkedIn =
+	| {
+			distanceMiles?: number
+			remote?: boolean
+			employmentType?: EmploymentType
+			postedWithinHours: number
+			easyApply?: false | undefined
+	  }
+	| {
+			distanceMiles?: number
+			remote?: boolean
+			employmentType?: EmploymentType
+			postedWithinHours?: undefined
+			easyApply?: boolean
+	  }
+
+type JobSearchFiltersIndeed =
+	{
+		distanceMiles?: number
+	} & (
+		| {
+				postedWithinHours?: undefined
+				easyApply?: false | undefined
+				employmentType?: undefined
+				remote?: false | undefined
+		  }
+		| {
+				postedWithinHours: number
+				easyApply?: false | undefined
+				employmentType?: undefined
+				remote?: false | undefined
+		  }
+		| {
+				postedWithinHours?: undefined
+				easyApply: true
+				employmentType?: undefined
+				remote?: false | undefined
+		  }
+		| ({
+				postedWithinHours?: undefined
+				easyApply?: false | undefined
+		  } & (
+				| {
+						employmentType: EmploymentType
+						remote?: boolean
+				  }
+				| {
+						remote: true
+						employmentType?: EmploymentType
+				  }
+		  ))
+	)
+
+type JobSearchFiltersForSites<Sites extends readonly JobSite[]> =
+	HasSite<Sites, 'indeed'> extends true
+		? HasSite<Sites, 'linkedin'> extends true
+			? JobSearchFiltersIndeed & JobSearchFiltersLinkedIn
+			: JobSearchFiltersIndeed
+		: HasSite<Sites, 'linkedin'> extends true
+			? JobSearchFiltersLinkedIn
+			: JobSearchFiltersGeneral
+
+type JobSearchGoogleForSites<Sites extends readonly JobSite[]> =
+	HasSite<Sites, 'google'> extends true
+		? {
+				google: JobSearchRequiredGoogleOptions
+		  }
+		: {
+				google?: JobSearchGoogleOptions
+		  }
+
+export type JobSearchRequestForSites<Sites extends readonly JobSite[]> = {
+	sites: EnsureSites<Sites>
 	query?: string
 	location?: string
-	pagination?: {
-		limitPerSite?: number
-		offset?: number
-	}
-	filters?: {
-		distanceMiles?: number
-		remote?: boolean
-		easyApply?: boolean
-		employmentType?: EmploymentType
-		postedWithinHours?: number
-	}
-	linkedin?: {
-		fetchDescription?: boolean
-		companyIds?: number[]
-	}
-	indeed?: {
-		country?: string
-	}
-	google?: {
-		query?: string
-	}
-}
+	pagination?: JobSearchPagination
+	filters?: JobSearchFiltersForSites<Sites>
+	linkedin?: JobSearchLinkedInOptions
+	indeed?: JobSearchIndeedOptions
+} & JobSearchGoogleForSites<Sites>
+
+export type JobSearchRequest<
+	Sites extends readonly JobSite[] = readonly JobSite[],
+> = JobSearchRequestForSites<Sites>
 
 export interface JobScoutConfig {
 	transport?: {
@@ -169,6 +273,10 @@ export interface JobScoutConfig {
 }
 
 export interface JobScoutClient {
-	scoutJobs(request: JobSearchRequest): Promise<Job[]>
-	scoutJobRows(request: JobSearchRequest): Promise<JobRow[]>
+	scoutJobs<const Sites extends readonly JobSite[]>(
+		request: JobSearchRequestForSites<Sites>,
+	): Promise<Job[]>
+	scoutJobRows<const Sites extends readonly JobSite[]>(
+		request: JobSearchRequestForSites<Sites>,
+	): Promise<JobRow[]>
 }

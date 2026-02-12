@@ -19,13 +19,13 @@ const jobs = await scoutJobs(
 	{
 		sites: ['indeed', 'linkedin', 'zipRecruiter', 'google'],
 		query: 'software engineer',
-		location: 'San Francisco, CA',
+		location: 'Ambon, Indonesia',
 		pagination: { limitPerSite: 20 },
 		filters: { postedWithinHours: 72 },
 		google: {
-			query: 'software engineer jobs near San Francisco, CA since yesterday',
+			query: 'software engineer jobs near Ambon, Indonesia since yesterday',
 		},
-		indeed: { country: 'usa' },
+		indeed: { country: 'indonesia' },
 		linkedin: { fetchDescription: true },
 	},
 	{
@@ -71,7 +71,7 @@ const jobs = await client.scoutJobs({
 
 `JobSearchRequest` supports:
 
-- `sites?: JobSite[]`
+- `sites: JobSite[]` (required, non-empty)
 - `query?: string`
 - `location?: string`
 - `pagination?: { limitPerSite?: number; offset?: number }`
@@ -80,7 +80,7 @@ const jobs = await client.scoutJobs({
 - `indeed?: { country?: string }`
 - `google?: { query?: string }`
 
-Constraint rules enforced at runtime:
+Constraint rules are enforced at compile time (TypeScript) and runtime:
 
 - If `sites` includes `google`, `google.query` is required.
 - For Indeed, use only one filter group at a time:

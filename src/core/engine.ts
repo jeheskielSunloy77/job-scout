@@ -2,6 +2,7 @@ import { createLogger } from "@/util/logger";
 import type { JobPost } from "@/core/model";
 import { createTransport } from "@/internal/http/transport";
 import { applyLogLevel } from "@/internal/logging";
+import type { JobSite } from "@/domain/types";
 
 import type { CompiledSearchRequest, SiteProvider, SiteSearchResult } from "@/core/contracts";
 import { SiteExecutionError } from "@/core/errors";
@@ -17,8 +18,8 @@ function buildProviderMap(providers: SiteProvider[]): Map<SiteProvider["site"], 
   return map;
 }
 
-export async function executeSearch(
-  compiled: CompiledSearchRequest,
+export async function executeSearch<const Sites extends readonly JobSite[]>(
+  compiled: CompiledSearchRequest<Sites>,
   providers: SiteProvider[]
 ): Promise<JobPost[]> {
   applyLogLevel(compiled.config.logging.level);

@@ -1,66 +1,74 @@
-import type { JobSearchRequest, JobSite } from "../../../src/index";
+import type { JobSearchRequestForSites, JobSite } from '../../../src/index'
 
-export interface SiteScenario {
-  site: JobSite;
-  request: JobSearchRequest;
+export interface SiteScenario<Site extends JobSite = JobSite> {
+	site: Site
+	request: Omit<JobSearchRequestForSites<readonly [Site]>, 'sites'>
 }
 
-export const siteScenarios: SiteScenario[] = [
-  {
-    site: "indeed",
-    request: {
-      query: "software engineer",
-      location: "San Francisco, CA",
-      indeed: { country: "usa" }
-    }
-  },
-  {
-    site: "linkedin",
-    request: {
-      query: "software engineer",
-      location: "San Francisco, CA",
-      linkedin: { fetchDescription: false }
-    }
-  },
-  {
-    site: "zipRecruiter",
-    request: {
-      query: "software engineer",
-      location: "San Francisco, CA"
-    }
-  },
-  {
-    site: "glassdoor",
-    request: {
-      query: "software engineer",
-      location: "San Francisco, CA",
-      indeed: { country: "usa" }
-    }
-  },
-  {
-    site: "google",
-    request: {
-      query: "software engineer",
-      google: { query: "software engineer jobs near San Francisco, CA since yesterday" }
-    }
-  },
-  {
-    site: "bayt",
-    request: {
-      query: "software"
-    }
-  },
-  {
-    site: "naukri",
-    request: {
-      query: "software engineer",
-      location: "Bengaluru"
-    }
-  },
-  {
-    site: "bdjobs",
-    request: {
-      query: "software"
-    }
-  }
-];
+function defineScenario<const Site extends JobSite>(
+	scenario: SiteScenario<Site>,
+): SiteScenario<Site> {
+	return scenario
+}
+
+export const siteScenarios = [
+	defineScenario({
+		site: 'indeed',
+		request: {
+			query: 'software engineer',
+			location: 'San Francisco, CA',
+			indeed: { country: 'usa' },
+		},
+	}),
+	defineScenario({
+		site: 'linkedin',
+		request: {
+			query: 'software engineer',
+			location: 'Yogyakarta, Indonesia',
+			linkedin: { fetchDescription: false },
+		},
+	}),
+	defineScenario({
+		site: 'zipRecruiter',
+		request: {
+			query: 'software engineer',
+			location: 'Ambon, Indonesia',
+		},
+	}),
+	defineScenario({
+		site: 'glassdoor',
+		request: {
+			query: 'software engineer',
+			location: 'San Francisco, CA',
+			indeed: { country: 'usa' },
+		},
+	}),
+	defineScenario({
+		site: 'google',
+		request: {
+			query: 'software engineer',
+			google: {
+				query: 'software engineer jobs near Ambon, Indonesia since yesterday',
+			},
+		},
+	}),
+	defineScenario({
+		site: 'bayt',
+		request: {
+			query: 'software',
+		},
+	}),
+	defineScenario({
+		site: 'naukri',
+		request: {
+			query: 'software engineer',
+			location: 'Bengaluru',
+		},
+	}),
+	defineScenario({
+		site: 'bdjobs',
+		request: {
+			query: 'software',
+		},
+	}),
+] as const

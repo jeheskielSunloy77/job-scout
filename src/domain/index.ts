@@ -1,6 +1,7 @@
 export type {
 	CompensationInterval,
 	EmploymentType,
+	HasSite,
 	Job,
 	JobCompensation,
 	JobDescriptionFormat,
@@ -8,8 +9,10 @@ export type {
 	JobRow,
 	JobScoutClient,
 	JobScoutConfig,
+	JobSearchRequestForSites,
 	JobSearchRequest,
 	JobSite,
+	NonEmptyArray,
 	SalarySourceType,
 } from '@/domain/types'
 
