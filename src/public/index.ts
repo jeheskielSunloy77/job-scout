@@ -5,6 +5,7 @@ export { scoutJobs } from '@/public/scout-jobs'
 export type {
 	CompensationInterval,
 	EmploymentType,
+	ExperimentalJobSite,
 	HasSite,
 	Job,
 	JobCompensation,
@@ -16,6 +17,7 @@ export type {
 	JobSearchRequestForSites,
 	JobSearchRequest,
 	JobSite,
+	StableJobSite,
 	NonEmptyArray,
 	SalarySourceType,
 } from '@/domain/types'

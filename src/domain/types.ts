@@ -1,12 +1,12 @@
-export type JobSite =
-	| 'linkedin'
-	| 'indeed'
+export type StableJobSite = 'linkedin' | 'indeed' | 'bayt' | 'naukri'
+
+export type ExperimentalJobSite =
 	| 'zipRecruiter'
 	| 'glassdoor'
 	| 'google'
-	| 'bayt'
-	| 'naukri'
 	| 'bdjobs'
+
+export type JobSite = StableJobSite | ExperimentalJobSite
 
 export type EmploymentType =
 	| 'fullTime'
@@ -115,6 +115,22 @@ export interface JobRow {
 
 export type NonEmptyArray<T> = readonly [T, ...T[]]
 
+type ExperimentalSiteFlags = Partial<Record<JobSite, boolean>>
+
+type EnabledExperimentalSites<Flags> = {
+	[Site in ExperimentalJobSite]: Flags extends ExperimentalSiteFlags
+		? Flags[Site] extends true
+			? Site
+			: never
+		: never
+}[ExperimentalJobSite]
+
+type AllowedSitesForConfig<C> =
+	| StableJobSite
+	| (C extends { experimental?: { experimentalSites?: infer Flags } }
+			? EnabledExperimentalSites<Flags>
+			: never)
+
 export type HasSite<
 	Sites extends readonly JobSite[],
 	SiteName extends JobSite,
@@ -122,10 +138,13 @@ export type HasSite<
 	? true
 	: false
 
-type EnsureSites<Sites extends readonly JobSite[]> =
+type EnsureSites<
+	Sites extends readonly JobSite[],
+	AllowedSite extends JobSite,
+> =
 	number extends Sites['length']
 		? Sites
-		: Sites extends NonEmptyArray<JobSite>
+		: Sites extends NonEmptyArray<AllowedSite>
 			? Sites
 			: never
 
@@ -230,8 +249,11 @@ type JobSearchGoogleForSites<Sites extends readonly JobSite[]> =
 				google?: JobSearchGoogleOptions
 		  }
 
-export type JobSearchRequestForSites<Sites extends readonly JobSite[]> = {
-	sites: EnsureSites<Sites>
+export type JobSearchRequestForSites<
+	Sites extends readonly JobSite[],
+	C = undefined,
+> = {
+	sites: EnsureSites<Sites, AllowedSitesForConfig<C>>
 	query?: string
 	location?: string
 	pagination?: JobSearchPagination
@@ -242,7 +264,8 @@ export type JobSearchRequestForSites<Sites extends readonly JobSite[]> = {
 
 export type JobSearchRequest<
 	Sites extends readonly JobSite[] = readonly JobSite[],
-> = JobSearchRequestForSites<Sites>
+	C = undefined,
+> = JobSearchRequestForSites<Sites, C>
 
 export interface JobScoutConfig {
 	transport?: {
@@ -262,6 +285,9 @@ export interface JobScoutConfig {
 		}
 		adaptiveConcurrency?: boolean
 	}
+	experimental?: {
+		experimentalSites?: ExperimentalSiteFlags
+	}
 	output?: {
 		descriptionFormat?: JobDescriptionFormat
 		annualizeSalary?: boolean
@@ -272,11 +298,13 @@ export interface JobScoutConfig {
 	}
 }
 
-export interface JobScoutClient {
+export interface JobScoutClient<
+	C = undefined,
+> {
 	scoutJobs<const Sites extends readonly JobSite[]>(
-		request: JobSearchRequestForSites<Sites>,
+		request: JobSearchRequestForSites<Sites, C>,
 	): Promise<Job[]>
 	scoutJobRows<const Sites extends readonly JobSite[]>(
-		request: JobSearchRequestForSites<Sites>,
+		request: JobSearchRequestForSites<Sites, C>,
 	): Promise<JobRow[]>
 }

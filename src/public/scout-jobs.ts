@@ -9,10 +9,10 @@ import type {
 } from '@/domain/types'
 import { siteProviders } from '@/sites/index'
 
-export async function scoutJobs<const Sites extends readonly JobSite[]>(
-	request: JobSearchRequestForSites<Sites>,
-	config: JobScoutConfig = {},
-): Promise<Job[]> {
+export async function scoutJobs<
+	const C extends JobScoutConfig | undefined = undefined,
+	const Sites extends readonly JobSite[] = readonly JobSite[],
+>(request: JobSearchRequestForSites<Sites, C>, config?: C): Promise<Job[]> {
 	const compiled = compileSearchRequest(request, config)
 	const jobs = await executeSearch(compiled, siteProviders)
 	return jobs.map((job) => toDomainJob(job))

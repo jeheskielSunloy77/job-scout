@@ -8,9 +8,12 @@ import type {
 
 import { scoutJobs } from '@/public/scout-jobs'
 
-export async function scoutJobRows<const Sites extends readonly JobSite[]>(
-	request: JobSearchRequestForSites<Sites>,
-	config: JobScoutConfig = {},
+export async function scoutJobRows<
+	const C extends JobScoutConfig | undefined = undefined,
+	const Sites extends readonly JobSite[] = readonly JobSite[],
+>(
+	request: JobSearchRequestForSites<Sites, C>,
+	config?: C,
 ): Promise<JobRow[]> {
 	const jobs = await scoutJobs(request, config)
 	return toJobRows(jobs)

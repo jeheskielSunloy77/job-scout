@@ -1,6 +1,6 @@
 # job-scout &middot; ![npm version](https://img.shields.io/npm/v/job-scout)
 
-TypeScript-first job scraping library for LinkedIn, Indeed, ZipRecruiter, Glassdoor, Google Jobs, Bayt, Naukri, and BDJobs.
+TypeScript-first job scraping library with stable support for LinkedIn, Indeed, Bayt, and Naukri, plus experimental support for ZipRecruiter, Glassdoor, Google Jobs, and BDJobs.
 
 ## Install
 
@@ -17,7 +17,7 @@ import { scoutJobs } from 'job-scout'
 
 const jobs = await scoutJobs(
 	{
-		sites: ['indeed', 'linkedin', 'zipRecruiter', 'google'],
+		sites: ['indeed', 'linkedin', 'google'],
 		query: 'software engineer',
 		location: 'Ambon, Indonesia',
 		pagination: { limitPerSite: 20 },
@@ -31,6 +31,11 @@ const jobs = await scoutJobs(
 	{
 		transport: {
 			timeoutMs: 20_000,
+		},
+		experimental: {
+			experimentalSites: {
+				google: true,
+			},
 		},
 		logging: {
 			level: 'warn',
@@ -72,6 +77,8 @@ const jobs = await client.scoutJobs({
 `JobSearchRequest` supports:
 
 - `sites: JobSite[]` (required, non-empty)
+  - Stable by default: `indeed | linkedin | bayt | naukri`
+  - Experimental (opt-in required): `zipRecruiter | glassdoor | google | bdjobs`
 - `query?: string`
 - `location?: string`
 - `pagination?: { limitPerSite?: number; offset?: number }`
@@ -82,6 +89,8 @@ const jobs = await client.scoutJobs({
 
 Constraint rules are enforced at compile time (TypeScript) and runtime:
 
+- Experimental sites must be explicitly enabled with
+  `config.experimental.experimentalSites.<site> = true`.
 - If `sites` includes `google`, `google.query` is required.
 - For Indeed, use only one filter group at a time:
   - `filters.postedWithinHours`
@@ -95,6 +104,7 @@ Constraint rules are enforced at compile time (TypeScript) and runtime:
 
 - `transport`: proxies, user agent, CA cert path, timeout
 - `performance`: global/site concurrency, retry policy, adaptive concurrency
+- `experimental`: `{ experimentalSites: Record<Site, boolean> }` (partial overrides allowed; missing keys default to `false`)
 - `output`: description format, salary annualization, salary fallback behavior
 - `logging`: `error | warn | info | debug`
 

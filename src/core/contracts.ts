@@ -8,10 +8,13 @@ import type {
 } from '@/core/model'
 import type { HttpClient, HttpClientConfig } from '@/util/http'
 
-import type { JobSearchRequestForSites, JobSite } from '@/domain/types'
+import type { JobScoutConfig, JobSearchRequestForSites, JobSite } from '@/domain/types'
 
 export interface ResolvedJobScoutConfig {
 	raw: unknown
+	experimental: {
+		experimentalSites: Record<JobSite, boolean>
+	}
 	logging: {
 		level: 'error' | 'warn' | 'info' | 'debug'
 	}
@@ -34,8 +37,9 @@ export interface CompiledSiteRequest {
 
 export interface CompiledSearchRequest<
 	Sites extends readonly JobSite[] = readonly JobSite[],
+	C extends JobScoutConfig | undefined = undefined,
 > {
-	request: JobSearchRequestForSites<Sites>
+	request: JobSearchRequestForSites<Sites, C>
 	config: ResolvedJobScoutConfig
 	country: Country
 	siteRequests: CompiledSiteRequest[]

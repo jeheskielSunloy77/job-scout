@@ -31,6 +31,13 @@ const jobSiteSchema = z.enum([
 	'bdjobs',
 ])
 
+const experimentalJobSites: JobSite[] = [
+	'zipRecruiter',
+	'glassdoor',
+	'google',
+	'bdjobs',
+]
+
 const employmentTypeSchema = z.enum([
 	'fullTime',
 	'partTime',
@@ -119,6 +126,24 @@ const configSchema = z
 			})
 			.strict()
 			.optional(),
+		experimental: z
+			.object({
+				experimentalSites: z
+					.object({
+						linkedin: z.boolean().optional(),
+						indeed: z.boolean().optional(),
+						zipRecruiter: z.boolean().optional(),
+						glassdoor: z.boolean().optional(),
+						google: z.boolean().optional(),
+						bayt: z.boolean().optional(),
+						naukri: z.boolean().optional(),
+						bdjobs: z.boolean().optional(),
+					})
+					.strict()
+					.optional(),
+			})
+			.strict()
+			.optional(),
 		output: z
 			.object({
 				descriptionFormat: z.enum(['markdown', 'html', 'plain']).optional(),
@@ -137,6 +162,7 @@ const configSchema = z
 	.strict()
 
 type ParsedJobSearchRequest = z.infer<typeof requestSchema>
+type ParsedJobScoutConfig = z.infer<typeof configSchema>
 
 function zodErrorToMessage(error: z.ZodError): string {
 	return error.issues
@@ -207,6 +233,54 @@ function enforceSiteFilterRules(
 	}
 }
 
+function resolveExperimentalSiteFlags(
+	config: ParsedJobScoutConfig,
+): Record<JobSite, boolean> {
+	const defaults: Record<JobSite, boolean> = {
+		linkedin: false,
+		indeed: false,
+		zipRecruiter: false,
+		glassdoor: false,
+		google: false,
+		bayt: false,
+		naukri: false,
+		bdjobs: false,
+	}
+
+	const overrides = config.experimental?.experimentalSites
+	if (!overrides) {
+		return defaults
+	}
+
+	for (const site of Object.keys(overrides) as JobSite[]) {
+		defaults[site] = overrides[site] === true
+	}
+
+	return defaults
+}
+
+function enforceExperimentalSiteRules(
+	sites: JobSite[],
+	experimentalSitesEnabled: Record<JobSite, boolean>,
+): void {
+	const blockedSites = sites.filter(
+		(site) =>
+			experimentalJobSites.includes(site) &&
+			experimentalSitesEnabled[site] !== true,
+	)
+
+	if (blockedSites.length === 0) {
+		return
+	}
+
+	const enableHints = blockedSites
+		.map((site) => `config.experimental.experimentalSites.${site} = true`)
+		.join(', ')
+	throw new JobScoutValidationError(
+		`Experimental sites require explicit opt-in. Blocked sites: ${blockedSites.join(', ')}. Enable with ${enableHints}.`,
+	)
+}
+
 function resolveConfig(config: JobScoutConfig): ResolvedJobScoutConfig {
 	const parsedConfig = configSchema.safeParse(config)
 	if (!parsedConfig.success) {
@@ -226,6 +300,9 @@ function resolveConfig(config: JobScoutConfig): ResolvedJobScoutConfig {
 
 	return {
 		raw: parsed,
+		experimental: {
+			experimentalSites: resolveExperimentalSiteFlags(parsed),
+		},
 		logging: {
 			level: parsed.logging?.level ?? 'error',
 		},
@@ -286,10 +363,13 @@ function compileScraperInput(
 	}
 }
 
-export function compileSearchRequest<const Sites extends readonly JobSite[]>(
-	request: JobSearchRequestForSites<Sites>,
-	config: JobScoutConfig = {},
-): CompiledSearchRequest<Sites> {
+export function compileSearchRequest<
+	const Sites extends readonly JobSite[],
+	const C extends JobScoutConfig | undefined = undefined,
+>(
+	request: JobSearchRequestForSites<Sites, C>,
+	config?: C,
+): CompiledSearchRequest<Sites, C> {
 	const parsedRequest = requestSchema.safeParse(request)
 	if (!parsedRequest.success) {
 		throw new JobScoutValidationError(
@@ -301,7 +381,11 @@ export function compileSearchRequest<const Sites extends readonly JobSite[]>(
 	const selectedSites = normalizedRequest.sites
 	enforceSiteFilterRules(normalizedRequest, selectedSites)
 
-	const resolvedConfig = resolveConfig(config)
+	const resolvedConfig = resolveConfig(config ?? {})
+	enforceExperimentalSiteRules(
+		selectedSites,
+		resolvedConfig.experimental.experimentalSites,
+	)
 	const country = resolveCountry(normalizedRequest.indeed?.country)
 
 	const siteRequests = [...new Set(selectedSites)]
@@ -318,7 +402,7 @@ export function compileSearchRequest<const Sites extends readonly JobSite[]>(
 		}))
 
 	return {
-		request: normalizedRequest as unknown as JobSearchRequestForSites<Sites>,
+		request: normalizedRequest as unknown as JobSearchRequestForSites<Sites, C>,
 		config: resolvedConfig,
 		country,
 		siteRequests,

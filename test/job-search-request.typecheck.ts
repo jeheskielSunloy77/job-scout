@@ -1,5 +1,4 @@
-import type { JobSite } from '../src/index'
-import { scoutJobs } from '../src/index'
+import { createClient, scoutJobs } from '../src/index'
 
 async function typecheckJobSearchRequest() {
 	await scoutJobs({
@@ -12,6 +11,12 @@ async function typecheckJobSearchRequest() {
 		sites: ['google'],
 		query: 'software engineer',
 		google: { query: 'software engineer jobs near Yogyakarta, Indonesia' },
+	}, {
+		experimental: {
+			experimentalSites: {
+				google: true,
+			},
+		},
 	})
 
 	await scoutJobs({
@@ -26,21 +31,27 @@ async function typecheckJobSearchRequest() {
 		filters: { easyApply: true },
 	})
 
-	const dynamicSites: JobSite[] = ['indeed', 'linkedin']
+	const dynamicSites = ['indeed', 'linkedin'] as const
 
 	await scoutJobs({
 		sites: dynamicSites,
 		query: 'software engineer',
-		google: { query: 'software engineer jobs near Austin, TX' },
 	})
 
 	// @ts-expect-error sites is required.
 	await scoutJobs({})
 
-	// @ts-expect-error google.query is required when sites includes google.
 	await scoutJobs({
+		// @ts-expect-error google is experimental and not enabled by default.
 		sites: ['google'],
 		query: 'software engineer',
+	})
+
+	await scoutJobs({
+		// @ts-expect-error google is experimental and must be enabled via config.
+		sites: ['google'],
+		query: 'software engineer',
+		google: { query: 'software engineer jobs near Austin, TX' },
 	})
 
 	await scoutJobs({
@@ -57,10 +68,37 @@ async function typecheckJobSearchRequest() {
 		filters: { postedWithinHours: 24, easyApply: true },
 	})
 
-	// @ts-expect-error Non-literal JobSite[] may include google, so google.query is required.
+	// @ts-expect-error google.query is required when google is enabled and selected.
 	await scoutJobs({
-		sites: dynamicSites,
+		sites: ['google'],
 		query: 'software engineer',
+	}, {
+		experimental: {
+			experimentalSites: {
+				google: true,
+			},
+		},
+	})
+
+	const stableClient = createClient()
+	await stableClient.scoutJobs({
+		// @ts-expect-error google is experimental and not enabled for this client config.
+		sites: ['google'],
+		query: 'software engineer',
+		google: { query: 'software engineer jobs near Austin, TX' },
+	})
+
+	const experimentalClient = createClient({
+		experimental: {
+			experimentalSites: {
+				google: true,
+			},
+		},
+	})
+	await experimentalClient.scoutJobs({
+		sites: ['google'],
+		query: 'software engineer',
+		google: { query: 'software engineer jobs near Austin, TX' },
 	})
 }
 

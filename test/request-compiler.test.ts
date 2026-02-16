@@ -36,6 +36,11 @@ describe('compileSearchRequest', () => {
 					descriptionFormat: 'plain',
 					annualizeSalary: true,
 				},
+				experimental: {
+					experimentalSites: {
+						zipRecruiter: true,
+					},
+				},
 			},
 		)
 
@@ -78,6 +83,43 @@ describe('compileSearchRequest', () => {
 				query: 'software engineer',
 			} as any),
 		).toThrow('google.query is required')
+	})
+
+	it('rejects experimental sites unless explicitly enabled', () => {
+		expect(() =>
+			compileSearchRequest({
+				sites: ['zipRecruiter'],
+				query: 'software engineer',
+			} as any),
+		).toThrow('Experimental sites require explicit opt-in')
+	})
+
+	it('allows experimental sites when explicitly enabled', () => {
+		expect(() =>
+			compileSearchRequest(
+				{
+					sites: ['zipRecruiter'],
+					query: 'software engineer',
+				} as any,
+				{
+					experimental: {
+						experimentalSites: {
+							zipRecruiter: true,
+						},
+					},
+				},
+			),
+		).not.toThrow()
+	})
+
+	it('rejects mixed requests that include blocked experimental sites', () => {
+		expect(() =>
+			compileSearchRequest({
+				sites: ['indeed', 'google'],
+				query: 'software engineer',
+				google: { query: 'software engineer jobs in Austin, TX' },
+			} as any),
+		).toThrow('Blocked sites: google')
 	})
 
 	it('enforces Indeed mutually-exclusive filters', () => {
