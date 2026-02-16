@@ -46,9 +46,9 @@ export const siteScenarios = [
 	defineScenario({
 		site: 'google',
 		request: {
-			query: 'software engineer',
+			query: 'software engineer jobs',
 			google: {
-				query: 'software engineer jobs near Ambon, Indonesia since yesterday',
+				query: 'software engineer jobs',
 			},
 		},
 	}),

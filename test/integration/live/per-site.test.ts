@@ -6,7 +6,6 @@ import { siteScenarios } from './common'
 import { getLiveTestConfig } from './env'
 import {
 	createTransientExternalError,
-	isTransientExternalFailure,
 	runWithRetries,
 } from './retry'
 
@@ -17,44 +16,33 @@ describe('Live Integration - Per Scraper', () => {
 		it(`${scenario.site} returns >= 1 valid job`, async () => {
 			const started = Date.now()
 
-			let jobs: Awaited<ReturnType<typeof scoutJobs>>
-			try {
-				jobs = await runWithRetries(`${scenario.site} scrape`, async () => {
-					const request = {
-						sites: [scenario.site],
-						pagination: { limitPerSite: cfg.resultsWantedPerSite },
-						filters: { postedWithinHours: 72 },
-						indeed: { country: cfg.countryIndeed },
-						...scenario.request,
-					}
-					const config = {
-						transport: {
-							timeoutMs: cfg.requestTimeoutMs,
-							...(cfg.proxies.length > 0 ? { proxies: cfg.proxies } : {}),
-							...(cfg.userAgent ? { userAgent: cfg.userAgent } : {}),
-						},
-						logging: {
-							level: cfg.logLevel,
-						},
-					}
-
-					const result = await scoutJobs(request as any, config)
-					if (result.length < 1) {
-						throw createTransientExternalError(
-							`site=${scenario.site} returned zero jobs for live query`,
-						)
-					}
-					return result
-				})
-			} catch (error) {
-				if (isTransientExternalFailure(error)) {
-					console.warn(
-						`[quarantined] site=${scenario.site} transient external failure: ${String(error)}`,
-					)
-					return
+			const jobs = await runWithRetries(`${scenario.site} scrape`, async () => {
+				const request = {
+					sites: [scenario.site],
+					pagination: { limitPerSite: cfg.resultsWantedPerSite },
+					filters: { postedWithinHours: 72 },
+					indeed: { country: cfg.countryIndeed },
+					...scenario.request,
 				}
-				throw error
-			}
+				const config = {
+					transport: {
+						timeoutMs: cfg.requestTimeoutMs,
+						...(cfg.proxies.length > 0 ? { proxies: cfg.proxies } : {}),
+						...(cfg.userAgent ? { userAgent: cfg.userAgent } : {}),
+					},
+					logging: {
+						level: cfg.logLevel,
+					},
+				}
+
+				const result = await scoutJobs(request as any, config)
+				if (result.length < 1) {
+					throw createTransientExternalError(
+						`site=${scenario.site} returned zero jobs for live query`,
+					)
+				}
+				return result
+			})
 
 			const elapsedMs = Date.now() - started
 			console.info(
