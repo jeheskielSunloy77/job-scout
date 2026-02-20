@@ -6,7 +6,10 @@ import {
   CompensationInterval,
   Country,
   DescriptionFormat,
+  type EnrichmentConfidence,
+  type EnrichmentMeta,
   JobPost,
+  type JobType,
   Location,
   type JobResponse,
   type ScraperInput,
@@ -29,13 +32,49 @@ import {
   parseJobLevel,
   parseJobType
 } from "@/scrapers/linkedin/util";
+import { EnrichmentBudgetController } from "@/scrapers/linkedin/enrichment/budget-controller";
+import { collectEnrichmentDocuments } from "@/scrapers/linkedin/enrichment/document-collector";
+import {
+  extractEnrichmentValues,
+  mergeUniqueValues
+} from "@/scrapers/linkedin/enrichment/extractors";
+import type { EnrichmentDocument, EnrichmentFieldName } from "@/scrapers/linkedin/enrichment/types";
 
 const log = createLogger("LinkedIn");
+
+type LinkedInJobDetails = {
+  description: string | null;
+  description_text: string | null;
+  page_text: string | null;
+  page_html: string | null;
+  job_type: JobType[] | null;
+  job_level: string | null;
+  company_industry: string | null;
+  job_url_direct: string | null;
+  company_logo: string | null;
+  job_function: string | null;
+};
+
+function emptyJobDetails(): LinkedInJobDetails {
+  return {
+    description: null,
+    description_text: null,
+    page_text: null,
+    page_html: null,
+    job_type: null,
+    job_level: null,
+    company_industry: null,
+    job_url_direct: null,
+    company_logo: null,
+    job_function: null
+  };
+}
 
 export class LinkedInScraper extends Scraper {
   private readonly baseUrl = "https://www.linkedin.com";
   private readonly delay = 3;
   private readonly bandDelay = 4;
+  private readonly companyPageCache = new Map<string, Promise<EnrichmentDocument[]>>();
 
   constructor(http: Scraper["http"], options: Scraper["options"] = {}) {
     super(Site.LINKEDIN, http, options);
@@ -44,6 +83,8 @@ export class LinkedInScraper extends Scraper {
   override async scrape(scraperInput: ScraperInput): Promise<JobResponse> {
     const jobList: JobPost[] = [];
     const seenIds = new Set<string>();
+
+    this.companyPageCache.clear();
 
     let start = scraperInput.offset ? Math.floor(scraperInput.offset / 10) * 10 : 0;
     let requestCount = 0;
@@ -125,7 +166,7 @@ export class LinkedInScraper extends Scraper {
         seenIds.add(jobId);
 
         try {
-          const job = await this.processJob($, card, jobId, scraperInput.linkedinFetchDescription, scraperInput);
+          const job = await this.processJob($, card, jobId, scraperInput);
           if (job) {
             jobList.push(job);
           }
@@ -150,7 +191,6 @@ export class LinkedInScraper extends Scraper {
     $: cheerio.CheerioAPI,
     jobCard: Element,
     jobId: string,
-    fullDescription: boolean,
     scraperInput: ScraperInput
   ): Promise<JobPost | null> {
     const card = $(jobCard);
@@ -184,11 +224,39 @@ export class LinkedInScraper extends Scraper {
     const datetimeValue = metadataCard.find("time.job-search-card__listdate").attr("datetime");
     const datePosted = datetimeValue ? new Date(datetimeValue) : null;
 
-    const details = fullDescription ? await this.getJobDetails(jobId, scraperInput) : {};
-    const description = (details.description as string | null | undefined) ?? null;
+    const enrichmentConfig = scraperInput.linkedinEnrichment;
+    const enrichmentBudget = enrichmentConfig.enabled
+      ? new EnrichmentBudgetController(enrichmentConfig.budget)
+      : null;
+
+    const shouldFetchDescription = scraperInput.linkedinFetchDescription;
+    const shouldFetchDetailForEnrichment =
+      enrichmentConfig.enabled && enrichmentConfig.sources.jobDetailPage;
+
+    let details = emptyJobDetails();
+    let detailDocument: EnrichmentDocument | null = null;
+
+    if (shouldFetchDescription) {
+      details = await this.getJobDetails(jobId, scraperInput, 5_000);
+      if (shouldFetchDetailForEnrichment) {
+        detailDocument = this.buildDetailDocument(jobId, details);
+      }
+    } else if (shouldFetchDetailForEnrichment && enrichmentBudget?.consumeRequest("www.linkedin.com")) {
+      details = await this.getJobDetails(
+        jobId,
+        scraperInput,
+        enrichmentConfig.budget.requestTimeoutMs
+      );
+      detailDocument = this.buildDetailDocument(jobId, details);
+      if (detailDocument) {
+        enrichmentBudget.recordCollectedPage();
+      }
+    }
+
+    const description = shouldFetchDescription ? details.description : null;
     const remote = isJobRemote(title, description, location);
 
-    return {
+    const job: JobPost = {
       id: `li-${jobId}`,
       title,
       company_name: company,
@@ -198,26 +266,139 @@ export class LinkedInScraper extends Scraper {
       date_posted: datePosted,
       job_url: `${this.baseUrl}/jobs/view/${jobId}`,
       compensation,
-      job_type: (details.job_type as JobPost["job_type"]) ?? null,
-      job_level: typeof details.job_level === "string" ? details.job_level.toLowerCase() : null,
-      company_industry: (details.company_industry as string | null | undefined) ?? null,
+      job_type: details.job_type,
+      job_level: details.job_level ? details.job_level.toLowerCase() : null,
+      company_industry: details.company_industry,
       description,
-      job_url_direct: (details.job_url_direct as string | null | undefined) ?? null,
+      job_url_direct: details.job_url_direct,
       emails: extractEmailsFromText(description),
-      company_logo: (details.company_logo as string | null | undefined) ?? null,
-      job_function: (details.job_function as string | null | undefined) ?? null,
+      company_logo: details.company_logo,
+      job_function: details.job_function,
       site: Site.LINKEDIN
+    };
+
+    if (enrichmentConfig.enabled && enrichmentBudget) {
+      let fieldConfidence: Partial<Record<EnrichmentFieldName, EnrichmentConfidence>> = {};
+      let sourcesUsed: string[] = [];
+
+      try {
+        const documents = await collectEnrichmentDocuments({
+          existingDetailDocument: detailDocument,
+          jobUrlDirect: job.job_url_direct ?? null,
+          companyUrl: job.company_url ?? null,
+          sources: {
+            externalApplyPage: enrichmentConfig.sources.externalApplyPage,
+            companyPages: enrichmentConfig.sources.companyPages
+          },
+          timeoutMs: enrichmentConfig.budget.requestTimeoutMs,
+          http: this.http,
+          options: this.options,
+          budget: enrichmentBudget,
+          companyPageCache: this.companyPageCache
+        });
+
+        const extraction = extractEnrichmentValues(
+          documents,
+          `${title} ${location.displayLocation()} ${details.description_text ?? ""}`
+        );
+
+        if (enrichmentConfig.fields.emails && extraction.emails) {
+          job.emails = mergeUniqueValues(job.emails, extraction.emails);
+        }
+
+        if (enrichmentConfig.fields.skills && extraction.skills) {
+          job.skills = mergeUniqueValues(job.skills, extraction.skills);
+        }
+
+        if (enrichmentConfig.fields.seniority && !job.job_level && extraction.seniority) {
+          job.job_level = extraction.seniority;
+        }
+
+        if (
+          enrichmentConfig.fields.companyWebsite &&
+          !job.company_url_direct &&
+          extraction.companyWebsite
+        ) {
+          job.company_url_direct = extraction.companyWebsite;
+        }
+
+        if (enrichmentConfig.fields.workMode && !job.work_from_home_type && extraction.workMode) {
+          job.work_from_home_type = extraction.workMode;
+        }
+
+        if (
+          enrichmentConfig.fields.companySize &&
+          !job.company_num_employees &&
+          extraction.companySize
+        ) {
+          job.company_num_employees = extraction.companySize;
+        }
+
+        fieldConfidence = {
+          ...(enrichmentConfig.fields.emails && extraction.fieldConfidence.emails
+            ? { emails: extraction.fieldConfidence.emails }
+            : {}),
+          ...(enrichmentConfig.fields.skills && extraction.fieldConfidence.skills
+            ? { skills: extraction.fieldConfidence.skills }
+            : {}),
+          ...(enrichmentConfig.fields.seniority && extraction.fieldConfidence.seniority
+            ? { seniority: extraction.fieldConfidence.seniority }
+            : {}),
+          ...(enrichmentConfig.fields.companyWebsite && extraction.fieldConfidence.companyWebsite
+            ? { companyWebsite: extraction.fieldConfidence.companyWebsite }
+            : {}),
+          ...(enrichmentConfig.fields.workMode && extraction.fieldConfidence.workMode
+            ? { workMode: extraction.fieldConfidence.workMode }
+            : {}),
+          ...(enrichmentConfig.fields.companySize && extraction.fieldConfidence.companySize
+            ? { companySize: extraction.fieldConfidence.companySize }
+            : {})
+        };
+
+        sourcesUsed = Array.from(new Set(documents.map((document) => document.source)));
+      } catch (error) {
+        log.warn(`Enrichment failed for li-${jobId}: ${String(error)}`);
+      }
+
+      if (enrichmentConfig.exposeMeta) {
+        job.enrichment_meta = {
+          enabled: true,
+          sources_used: sourcesUsed,
+          budget_used: enrichmentBudget.usage(),
+          field_confidence: fieldConfidence
+        } satisfies EnrichmentMeta;
+      }
+    }
+
+    return job;
+  }
+
+  private buildDetailDocument(jobId: string, details: LinkedInJobDetails): EnrichmentDocument | null {
+    if (!details.page_text) {
+      return null;
+    }
+
+    return {
+      source: "jobDetailPage",
+      url: `${this.baseUrl}/jobs/view/${jobId}`,
+      domain: "www.linkedin.com",
+      text: details.page_text,
+      html: details.page_html
     };
   }
 
-  private async getJobDetails(jobId: string, scraperInput: ScraperInput): Promise<Record<string, unknown>> {
+  private async getJobDetails(
+    jobId: string,
+    scraperInput: ScraperInput,
+    timeoutMs: number
+  ): Promise<LinkedInJobDetails> {
     let responseText: string;
     let finalUrl: string;
 
     try {
       const response = await this.http.requestText(`${this.baseUrl}/jobs/view/${jobId}`, {
         method: "GET",
-        timeoutMs: 5_000,
+        timeoutMs,
         headers: {
           ...headers,
           ...(this.options.userAgent ? { "user-agent": this.options.userAgent } : {})
@@ -226,22 +407,23 @@ export class LinkedInScraper extends Scraper {
         kind: "detail"
       });
       if (!response.ok) {
-        return {};
+        return emptyJobDetails();
       }
       responseText = response.text;
       finalUrl = response.url;
     } catch {
-      return {};
+      return emptyJobDetails();
     }
 
     if (finalUrl.includes("linkedin.com/signup")) {
-      return {};
+      return emptyJobDetails();
     }
 
     const $ = cheerio.load(responseText);
 
     const descriptionNode = $("div.show-more-less-html__markup").first();
     let description: string | null = null;
+    let descriptionText: string | null = null;
     if (descriptionNode.length > 0) {
       const cleanedHtml = removeAttributes($.html(descriptionNode));
       if (scraperInput.descriptionFormat === DescriptionFormat.MARKDOWN) {
@@ -251,6 +433,7 @@ export class LinkedInScraper extends Scraper {
       } else {
         description = cleanedHtml;
       }
+      descriptionText = plainConverter(cleanedHtml);
     }
 
     const jobFunctionHeader = $("h3")
@@ -267,6 +450,9 @@ export class LinkedInScraper extends Scraper {
 
     return {
       description,
+      description_text: descriptionText,
+      page_text: plainConverter(responseText),
+      page_html: responseText,
       job_level: parseJobLevel(responseText),
       company_industry: parseCompanyIndustry(responseText),
       job_type: parseJobType(responseText),

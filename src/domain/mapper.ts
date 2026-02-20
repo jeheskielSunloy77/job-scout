@@ -1,5 +1,6 @@
 import {
   CompensationInterval,
+  type EnrichmentMeta as ScraperEnrichmentMeta,
   SalarySource,
   type JobPost as ScraperJobPost,
   type Location as ScraperLocation,
@@ -12,6 +13,7 @@ import { toDomainEmploymentType } from "@/domain/employment-type";
 import { toDomainSite } from "@/domain/site-mapping";
 import type {
   CompensationInterval as DomainCompensationInterval,
+  EnrichmentMeta as DomainEnrichmentMeta,
   Job,
   JobCompensation,
   JobLocation,
@@ -89,6 +91,22 @@ function mapSalarySource(value: SalarySource | null | undefined): SalarySourceTy
   return value === SalarySource.DIRECT_DATA ? "directData" : "description";
 }
 
+function mapEnrichmentMeta(
+  value: ScraperEnrichmentMeta
+) : DomainEnrichmentMeta {
+  return {
+    enabled: value.enabled,
+    sourcesUsed: value.sources_used,
+    budgetUsed: {
+      requests: value.budget_used.requests,
+      domains: value.budget_used.domains,
+      pages: value.budget_used.pages,
+      exhausted: value.budget_used.exhausted
+    },
+    fieldConfidence: value.field_confidence
+  };
+}
+
 export function toDomainJob(job: ScraperJobPost): Job {
   const scraperSite = job.site ?? Site.BAYT;
 
@@ -124,6 +142,9 @@ export function toDomainJob(job: ScraperJobPost): Job {
     companyRating: job.company_rating ?? null,
     companyReviewsCount: job.company_reviews_count ?? null,
     vacancyCount: job.vacancy_count ?? null,
-    workFromHomeType: job.work_from_home_type ?? null
+    workFromHomeType: job.work_from_home_type ?? null,
+    ...(job.enrichment_meta
+      ? { enrichmentMeta: mapEnrichmentMeta(job.enrichment_meta) }
+      : {})
   };
 }

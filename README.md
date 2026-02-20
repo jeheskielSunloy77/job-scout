@@ -26,7 +26,14 @@ const jobs = await scoutJobs(
 			query: 'software engineer jobs near Ambon, Indonesia since yesterday',
 		},
 		indeed: { country: 'indonesia' },
-		linkedin: { fetchDescription: true },
+		enrichment: { enabled: true, mode: 'low' },
+		linkedin: {
+			fetchDescription: true,
+			enrichment: {
+				fields: { emails: true, skills: true },
+				exposeMeta: true,
+			},
+		},
 	},
 	{
 		transport: {
@@ -83,9 +90,19 @@ const jobs = await client.scoutJobs({
 - `location?: string`
 - `pagination?: { limitPerSite?: number; offset?: number }`
 - `filters?: { distanceMiles?: number; remote?: boolean; easyApply?: boolean; employmentType?: ...; postedWithinHours?: number }`
-- `linkedin?: { fetchDescription?: boolean; companyIds?: number[] }`
+- `enrichment?: EnrichmentConfig`
+- `linkedin?: { fetchDescription?: boolean; companyIds?: number[]; enrichment?: EnrichmentConfig }`
 - `indeed?: { country?: string }`
 - `google?: { query?: string }`
+
+`EnrichmentConfig` supports:
+
+- `enabled?: boolean` (default `false`)
+- `mode?: 'off' | 'low' | 'medium' | 'high'`
+- `budget?: { maxExtraRequestsPerJob?: number; maxPagesPerDomain?: number; requestTimeoutMs?: number }`
+- `sources?: { jobDetailPage?: boolean; externalApplyPage?: boolean; companyPages?: boolean }`
+- `fields?: { emails?: boolean; skills?: boolean; seniority?: boolean; companyWebsite?: boolean; workMode?: boolean; companySize?: boolean }`
+- `exposeMeta?: boolean` (default `false`, adds `job.enrichmentMeta`)
 
 Constraint rules are enforced at compile time (TypeScript) and runtime:
 

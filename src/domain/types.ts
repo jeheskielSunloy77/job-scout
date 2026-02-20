@@ -20,6 +20,46 @@ export type JobDescriptionFormat = 'markdown' | 'html' | 'plain'
 
 export type SalarySourceType = 'directData' | 'description'
 
+export type EnrichmentMode = 'off' | 'low' | 'medium' | 'high'
+
+export type EnrichmentConfidence = 'high' | 'medium' | 'low'
+
+export interface EnrichmentConfig {
+	enabled?: boolean
+	mode?: EnrichmentMode
+	budget?: {
+		maxExtraRequestsPerJob?: number
+		maxPagesPerDomain?: number
+		requestTimeoutMs?: number
+	}
+	sources?: {
+		jobDetailPage?: boolean
+		externalApplyPage?: boolean
+		companyPages?: boolean
+	}
+	fields?: {
+		emails?: boolean
+		skills?: boolean
+		seniority?: boolean
+		companyWebsite?: boolean
+		workMode?: boolean
+		companySize?: boolean
+	}
+	exposeMeta?: boolean
+}
+
+export interface EnrichmentMeta {
+	enabled: boolean
+	sourcesUsed: string[]
+	budgetUsed: {
+		requests: number
+		domains: number
+		pages: number
+		exhausted: boolean
+	}
+	fieldConfidence: Record<string, EnrichmentConfidence>
+}
+
 export type CompensationInterval =
 	| 'yearly'
 	| 'monthly'
@@ -74,6 +114,7 @@ export interface Job {
 	companyReviewsCount: number | null
 	vacancyCount: number | null
 	workFromHomeType: string | null
+	enrichmentMeta?: EnrichmentMeta
 }
 
 export interface JobRow {
@@ -156,6 +197,7 @@ type JobSearchPagination = {
 type JobSearchLinkedInOptions = {
 	fetchDescription?: boolean
 	companyIds?: number[]
+	enrichment?: EnrichmentConfig
 }
 
 type JobSearchIndeedOptions = {
@@ -258,6 +300,7 @@ export type JobSearchRequestForSites<
 	location?: string
 	pagination?: JobSearchPagination
 	filters?: JobSearchFiltersForSites<Sites>
+	enrichment?: EnrichmentConfig
 	linkedin?: JobSearchLinkedInOptions
 	indeed?: JobSearchIndeedOptions
 } & JobSearchGoogleForSites<Sites>

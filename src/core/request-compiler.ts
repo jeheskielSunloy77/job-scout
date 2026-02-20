@@ -11,6 +11,8 @@ import { normalizeRetryPolicy } from '@/internal/http/retry'
 import {
 	Country,
 	DescriptionFormat,
+	type EnrichmentMode,
+	type ResolvedEnrichmentConfig,
 	type ScraperInput,
 	type Site,
 } from '@/core/model'
@@ -47,6 +49,43 @@ const employmentTypeSchema = z.enum([
 	'other',
 ])
 
+const enrichmentModeSchema = z.enum(['off', 'low', 'medium', 'high'])
+
+const enrichmentConfigSchema = z
+	.object({
+		enabled: z.boolean().optional(),
+		mode: enrichmentModeSchema.optional(),
+		budget: z
+			.object({
+				maxExtraRequestsPerJob: z.number().int().positive().max(50).optional(),
+				maxPagesPerDomain: z.number().int().positive().max(20).optional(),
+				requestTimeoutMs: z.number().int().positive().max(60_000).optional(),
+			})
+			.strict()
+			.optional(),
+		sources: z
+			.object({
+				jobDetailPage: z.boolean().optional(),
+				externalApplyPage: z.boolean().optional(),
+				companyPages: z.boolean().optional(),
+			})
+			.strict()
+			.optional(),
+		fields: z
+			.object({
+				emails: z.boolean().optional(),
+				skills: z.boolean().optional(),
+				seniority: z.boolean().optional(),
+				companyWebsite: z.boolean().optional(),
+				workMode: z.boolean().optional(),
+				companySize: z.boolean().optional(),
+			})
+			.strict()
+			.optional(),
+		exposeMeta: z.boolean().optional(),
+	})
+	.strict()
+
 const requestSchema = z
 	.object({
 		sites: z.array(jobSiteSchema).min(1),
@@ -74,10 +113,12 @@ const requestSchema = z
 			})
 			.strict()
 			.optional(),
+		enrichment: enrichmentConfigSchema.optional(),
 		linkedin: z
 			.object({
 				fetchDescription: z.boolean().optional(),
 				companyIds: z.array(z.number().int().positive()).optional(),
+				enrichment: enrichmentConfigSchema.optional(),
 			})
 			.strict()
 			.optional(),
@@ -163,6 +204,49 @@ const configSchema = z
 
 type ParsedJobSearchRequest = z.infer<typeof requestSchema>
 type ParsedJobScoutConfig = z.infer<typeof configSchema>
+type ParsedEnrichmentConfig = z.infer<typeof enrichmentConfigSchema>
+
+const ENRICHMENT_FIELDS = {
+	emails: true,
+	skills: true,
+	seniority: true,
+	companyWebsite: true,
+	workMode: true,
+	companySize: true,
+} as const
+
+const ENRICHMENT_SOURCES = {
+	jobDetailPage: true,
+	externalApplyPage: true,
+	companyPages: true,
+} as const
+
+const ENRICHMENT_MODE_BUDGETS: Record<
+	Exclude<EnrichmentMode, 'off'>,
+	ResolvedEnrichmentConfig['budget']
+> = {
+	low: {
+		maxExtraRequestsPerJob: 1,
+		maxPagesPerDomain: 1,
+		requestTimeoutMs: 3000,
+	},
+	medium: {
+		maxExtraRequestsPerJob: 2,
+		maxPagesPerDomain: 2,
+		requestTimeoutMs: 5000,
+	},
+	high: {
+		maxExtraRequestsPerJob: 4,
+		maxPagesPerDomain: 3,
+		requestTimeoutMs: 7000,
+	},
+}
+
+const ENRICHMENT_OFF_BUDGET: ResolvedEnrichmentConfig['budget'] = {
+	maxExtraRequestsPerJob: 0,
+	maxPagesPerDomain: 0,
+	requestTimeoutMs: 0,
+}
 
 function zodErrorToMessage(error: z.ZodError): string {
 	return error.issues
@@ -185,6 +269,121 @@ function resolveDescriptionFormat(
 	}
 
 	return DescriptionFormat.MARKDOWN
+}
+
+function mergeEnrichmentConfig(
+	globalConfig: ParsedEnrichmentConfig | undefined,
+	linkedInConfig: ParsedEnrichmentConfig | undefined,
+): ParsedEnrichmentConfig {
+	const mergedBudget = {
+		...(globalConfig?.budget ?? {}),
+		...(linkedInConfig?.budget ?? {}),
+	}
+	const mergedSources = {
+		...(globalConfig?.sources ?? {}),
+		...(linkedInConfig?.sources ?? {}),
+	}
+	const mergedFields = {
+		...(globalConfig?.fields ?? {}),
+		...(linkedInConfig?.fields ?? {}),
+	}
+
+	return {
+		...(globalConfig ?? {}),
+		...(linkedInConfig ?? {}),
+		...(Object.keys(mergedBudget).length > 0 ? { budget: mergedBudget } : {}),
+		...(Object.keys(mergedSources).length > 0
+			? { sources: mergedSources }
+			: {}),
+		...(Object.keys(mergedFields).length > 0 ? { fields: mergedFields } : {}),
+	}
+}
+
+function resolveLinkedInEnrichmentConfig(
+	request: ParsedJobSearchRequest,
+): ResolvedEnrichmentConfig {
+	const merged = mergeEnrichmentConfig(
+		request.enrichment,
+		request.linkedin?.enrichment,
+	)
+
+	const modeFromRequest = merged.mode
+	let enabled = false
+
+	if (modeFromRequest === 'off') {
+		enabled = false
+	} else if (merged.enabled !== undefined) {
+		enabled = merged.enabled
+	} else if (modeFromRequest !== undefined) {
+		enabled = true
+	}
+
+	const resolvedMode: EnrichmentMode = enabled
+		? modeFromRequest && modeFromRequest !== 'off'
+			? modeFromRequest
+			: 'medium'
+		: 'off'
+
+	const modeBudget =
+		resolvedMode === 'off'
+			? ENRICHMENT_OFF_BUDGET
+			: ENRICHMENT_MODE_BUDGETS[resolvedMode]
+
+	const budget: ResolvedEnrichmentConfig['budget'] = {
+		maxExtraRequestsPerJob:
+			merged.budget?.maxExtraRequestsPerJob ?? modeBudget.maxExtraRequestsPerJob,
+		maxPagesPerDomain:
+			merged.budget?.maxPagesPerDomain ?? modeBudget.maxPagesPerDomain,
+		requestTimeoutMs:
+			merged.budget?.requestTimeoutMs ?? modeBudget.requestTimeoutMs,
+	}
+
+	const sources: ResolvedEnrichmentConfig['sources'] = enabled
+		? {
+				jobDetailPage:
+					merged.sources?.jobDetailPage ?? ENRICHMENT_SOURCES.jobDetailPage,
+				externalApplyPage:
+					merged.sources?.externalApplyPage ??
+					ENRICHMENT_SOURCES.externalApplyPage,
+				companyPages:
+					merged.sources?.companyPages ?? ENRICHMENT_SOURCES.companyPages,
+			}
+		: {
+				jobDetailPage: false,
+				externalApplyPage: false,
+				companyPages: false,
+			}
+
+	const fields: ResolvedEnrichmentConfig['fields'] = !enabled
+		? {
+				emails: false,
+				skills: false,
+				seniority: false,
+				companyWebsite: false,
+				workMode: false,
+				companySize: false,
+			}
+		: merged.fields
+			? {
+					emails: merged.fields.emails === true,
+					skills: merged.fields.skills === true,
+					seniority: merged.fields.seniority === true,
+					companyWebsite: merged.fields.companyWebsite === true,
+					workMode: merged.fields.workMode === true,
+					companySize: merged.fields.companySize === true,
+				}
+			: {
+					...ENRICHMENT_FIELDS,
+				}
+
+	return {
+		enabled,
+		mode: resolvedMode,
+		budget,
+		sources,
+		fields,
+		exposeMeta: merged.exposeMeta ?? false,
+	}
 }
 
 function resolveCountry(countryInput: string | undefined): Country {
@@ -342,6 +541,7 @@ function compileScraperInput(
 	request: ParsedJobSearchRequest,
 	country: Country,
 	config: ResolvedJobScoutConfig,
+	linkedInEnrichment: ResolvedEnrichmentConfig,
 ): ScraperInput {
 	return {
 		siteType: [site],
@@ -356,6 +556,7 @@ function compileScraperInput(
 		offset: request.pagination?.offset ?? 0,
 		linkedinFetchDescription: request.linkedin?.fetchDescription ?? false,
 		linkedinCompanyIds: request.linkedin?.companyIds ?? null,
+		linkedinEnrichment: linkedInEnrichment,
 		descriptionFormat: config.output.descriptionFormat,
 		requestTimeout: 60,
 		resultsWanted: request.pagination?.limitPerSite ?? 15,
@@ -387,6 +588,7 @@ export function compileSearchRequest<
 		resolvedConfig.experimental.experimentalSites,
 	)
 	const country = resolveCountry(normalizedRequest.indeed?.country)
+	const linkedInEnrichment = resolveLinkedInEnrichmentConfig(normalizedRequest)
 
 	const siteRequests = [...new Set(selectedSites)]
 		.map((site) => toScraperSite(site))
@@ -397,6 +599,7 @@ export function compileSearchRequest<
 				normalizedRequest,
 				country,
 				resolvedConfig,
+				linkedInEnrichment,
 			),
 			scraperOptions: resolvedConfig.transport.scraperOptions,
 		}))

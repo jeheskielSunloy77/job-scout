@@ -536,6 +536,46 @@ export enum DescriptionFormat {
   PLAIN = "plain"
 }
 
+export type EnrichmentMode = "off" | "low" | "medium" | "high";
+
+export type EnrichmentConfidence = "high" | "medium" | "low";
+
+export interface ResolvedEnrichmentConfig {
+  enabled: boolean;
+  mode: EnrichmentMode;
+  budget: {
+    maxExtraRequestsPerJob: number;
+    maxPagesPerDomain: number;
+    requestTimeoutMs: number;
+  };
+  sources: {
+    jobDetailPage: boolean;
+    externalApplyPage: boolean;
+    companyPages: boolean;
+  };
+  fields: {
+    emails: boolean;
+    skills: boolean;
+    seniority: boolean;
+    companyWebsite: boolean;
+    workMode: boolean;
+    companySize: boolean;
+  };
+  exposeMeta: boolean;
+}
+
+export interface EnrichmentMeta {
+  enabled: boolean;
+  sources_used: string[];
+  budget_used: {
+    requests: number;
+    domains: number;
+    pages: number;
+    exhausted: boolean;
+  };
+  field_confidence: Record<string, EnrichmentConfidence>;
+}
+
 export interface JobPost {
   id?: string | null;
   title: string;
@@ -568,6 +608,7 @@ export interface JobPost {
   company_reviews_count?: number | null;
   vacancy_count?: number | null;
   work_from_home_type?: string | null;
+  enrichment_meta?: EnrichmentMeta;
   site?: Site | null;
 }
 
@@ -604,6 +645,7 @@ export interface ScraperInput {
   offset: number;
   linkedinFetchDescription: boolean;
   linkedinCompanyIds?: number[] | null;
+  linkedinEnrichment: ResolvedEnrichmentConfig;
   descriptionFormat: DescriptionFormat;
   requestTimeout: number;
   resultsWanted: number;

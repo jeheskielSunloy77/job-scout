@@ -19,6 +19,7 @@ describe('Live Integration - Per Scraper', () => {
 					pagination: { limitPerSite: cfg.resultsWantedPerSite },
 					filters: { postedWithinHours: 72 },
 					indeed: { country: cfg.countryIndeed },
+					linkedin: { fetchDescription: true },
 					...scenario.request,
 				}
 				const config = {
@@ -44,6 +45,7 @@ describe('Live Integration - Per Scraper', () => {
 			const elapsedMs = Date.now() - started
 			console.info(
 				`[live] site=${scenario.site} count=${jobs.length} elapsedMs=${elapsedMs}`,
+				JSON.stringify(jobs, null, 2),
 			)
 
 			expect(jobs.length).toBeGreaterThanOrEqual(1)

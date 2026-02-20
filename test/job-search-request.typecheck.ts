@@ -31,6 +31,47 @@ async function typecheckJobSearchRequest() {
 		filters: { easyApply: true },
 	})
 
+	await scoutJobs({
+		sites: ['linkedin'],
+		query: 'software engineer',
+		enrichment: {
+			enabled: true,
+			mode: 'medium',
+			exposeMeta: true,
+		},
+		linkedin: {
+			enrichment: {
+				fields: {
+					emails: true,
+					skills: true,
+				},
+				sources: {
+					companyPages: false,
+				},
+			},
+		},
+	})
+
+	await scoutJobs({
+		sites: ['linkedin'],
+		query: 'software engineer',
+		enrichment: {
+			// @ts-expect-error unsupported enrichment mode.
+			mode: 'turbo',
+		},
+	})
+
+	await scoutJobs({
+		sites: ['linkedin'],
+		query: 'software engineer',
+		enrichment: {
+			fields: {
+				// @ts-expect-error unknown enrichment field.
+				foo: true,
+			},
+		},
+	})
+
 	const dynamicSites = ['indeed', 'linkedin'] as const
 
 	await scoutJobs({

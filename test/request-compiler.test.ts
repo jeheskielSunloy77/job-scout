@@ -134,4 +134,150 @@ describe('compileSearchRequest', () => {
 			} as any),
 		).toThrow('Indeed only supports one filter group')
 	})
+
+	it('defaults enrichment to disabled', () => {
+		const compiled = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+		})
+
+		expect(compiled.siteRequests[0]?.scraperInput.linkedinEnrichment).toEqual({
+			enabled: false,
+			mode: 'off',
+			budget: {
+				maxExtraRequestsPerJob: 0,
+				maxPagesPerDomain: 0,
+				requestTimeoutMs: 0,
+			},
+			sources: {
+				jobDetailPage: false,
+				externalApplyPage: false,
+				companyPages: false,
+			},
+			fields: {
+				emails: false,
+				skills: false,
+				seniority: false,
+				companyWebsite: false,
+				workMode: false,
+				companySize: false,
+			},
+			exposeMeta: false,
+		})
+	})
+
+	it('applies enrichment override precedence with nested merges', () => {
+		const compiled = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+			enrichment: {
+				enabled: true,
+				mode: 'low',
+				budget: {
+					maxExtraRequestsPerJob: 3,
+				},
+				sources: {
+					externalApplyPage: false,
+				},
+				fields: {
+					emails: true,
+				},
+				exposeMeta: true,
+			},
+			linkedin: {
+				enrichment: {
+					mode: 'high',
+					budget: {
+						requestTimeoutMs: 9000,
+					},
+					fields: {
+						skills: true,
+					},
+				},
+			},
+		})
+
+		expect(compiled.siteRequests[0]?.scraperInput.linkedinEnrichment).toEqual({
+			enabled: true,
+			mode: 'high',
+			budget: {
+				maxExtraRequestsPerJob: 3,
+				maxPagesPerDomain: 3,
+				requestTimeoutMs: 9000,
+			},
+			sources: {
+				jobDetailPage: true,
+				externalApplyPage: false,
+				companyPages: true,
+			},
+			fields: {
+				emails: true,
+				skills: true,
+				seniority: false,
+				companyWebsite: false,
+				workMode: false,
+				companySize: false,
+			},
+			exposeMeta: true,
+		})
+	})
+
+	it('enables all enrichment fields when enabled and fields is omitted', () => {
+		const compiled = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+			enrichment: {
+				enabled: true,
+			},
+		})
+
+		expect(compiled.siteRequests[0]?.scraperInput.linkedinEnrichment.fields).toEqual({
+			emails: true,
+			skills: true,
+			seniority: true,
+			companyWebsite: true,
+			workMode: true,
+			companySize: true,
+		})
+	})
+
+	it('uses conservative mode budget defaults', () => {
+		const low = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+			enrichment: {
+				mode: 'low',
+			},
+		})
+		const medium = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+			enrichment: {
+				mode: 'medium',
+			},
+		})
+		const high = compileSearchRequest({
+			sites: ['linkedin'],
+			query: 'software engineer',
+			enrichment: {
+				mode: 'high',
+			},
+		})
+
+		expect(low.siteRequests[0]?.scraperInput.linkedinEnrichment.budget).toEqual({
+			maxExtraRequestsPerJob: 1,
+			maxPagesPerDomain: 1,
+			requestTimeoutMs: 3000,
+		})
+		expect(medium.siteRequests[0]?.scraperInput.linkedinEnrichment.budget).toEqual({
+			maxExtraRequestsPerJob: 2,
+			maxPagesPerDomain: 2,
+			requestTimeoutMs: 5000,
+		})
+		expect(high.siteRequests[0]?.scraperInput.linkedinEnrichment.budget).toEqual({
+			maxExtraRequestsPerJob: 4,
+			maxPagesPerDomain: 3,
+			requestTimeoutMs: 7000,
+		})
+	})
 })

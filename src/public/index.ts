@@ -4,6 +4,10 @@ export { scoutJobs } from '@/public/scout-jobs'
 
 export type {
 	CompensationInterval,
+	EnrichmentConfig,
+	EnrichmentConfidence,
+	EnrichmentMeta,
+	EnrichmentMode,
 	EmploymentType,
 	ExperimentalJobSite,
 	HasSite,
