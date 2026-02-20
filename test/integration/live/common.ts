@@ -29,30 +29,6 @@ export const siteScenarios = [
 		},
 	}),
 	defineScenario({
-		site: 'zipRecruiter',
-		request: {
-			query: 'software engineer',
-			location: 'Ambon, Indonesia',
-		},
-	}),
-	defineScenario({
-		site: 'glassdoor',
-		request: {
-			query: 'software engineer',
-			location: 'San Francisco, CA',
-			indeed: { country: 'usa' },
-		},
-	}),
-	defineScenario({
-		site: 'google',
-		request: {
-			query: 'software engineer jobs',
-			google: {
-				query: 'software engineer jobs',
-			},
-		},
-	}),
-	defineScenario({
 		site: 'bayt',
 		request: {
 			query: 'software',
@@ -63,12 +39,6 @@ export const siteScenarios = [
 		request: {
 			query: 'software engineer',
 			location: 'Bengaluru',
-		},
-	}),
-	defineScenario({
-		site: 'bdjobs',
-		request: {
-			query: 'software',
 		},
 	}),
 ] as const

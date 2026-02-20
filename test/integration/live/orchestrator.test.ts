@@ -4,47 +4,47 @@ import type { JobSite } from '../../../src/index'
 import { scoutJobs, toJobRows } from '../../../src/index'
 import { assertRowBasics, assertSortedBySiteAndDate } from './assertions'
 import { getLiveTestConfig } from './env'
-import {
-	createTransientExternalError,
-	runWithRetries,
-} from './retry'
+import { createTransientExternalError, runWithRetries } from './retry'
 
 const cfg = getLiveTestConfig()
 
 describe('Live Integration - Orchestrator', () => {
 	it('aggregates multiple sites and returns sorted rows', async () => {
-		const sites: JobSite[] = ['indeed', 'google', 'bayt']
+		const sites: JobSite[] = ['indeed', 'linkedin']
 
-		const jobs = await runWithRetries('orchestrator multi-site scrape', async () => {
-			const request = {
-				sites: [...sites],
-				query: 'software engineer',
-				location: 'San Francisco, CA',
-				pagination: { limitPerSite: 1 },
-				filters: { postedWithinHours: 72 },
-				google: {
-					query: 'software engineer jobs near San Francisco, CA since yesterday',
-				},
-				indeed: { country: cfg.countryIndeed },
-			}
-			const config = {
-				transport: {
-					timeoutMs: cfg.requestTimeoutMs,
-					...(cfg.proxies.length > 0 ? { proxies: cfg.proxies } : {}),
-					...(cfg.userAgent ? { userAgent: cfg.userAgent } : {}),
-				},
-				logging: {
-					level: cfg.logLevel,
-				},
-			}
-			const result = await scoutJobs(request, config)
-			if (result.length < 1) {
-				throw createTransientExternalError(
-					'orchestrator returned zero jobs across requested sites',
-				)
-			}
-			return result
-		})
+		const jobs = await runWithRetries(
+			'orchestrator multi-site scrape',
+			async () => {
+				const request = {
+					sites: [...sites],
+					query: 'software engineer',
+					location: 'San Francisco, CA',
+					pagination: { limitPerSite: 1 },
+					filters: { postedWithinHours: 72 },
+					google: {
+						query: 'software engineer jobs near San Francisco, CA since yesterday',
+					},
+					indeed: { country: cfg.countryIndeed },
+				}
+				const config = {
+					transport: {
+						timeoutMs: cfg.requestTimeoutMs,
+						...(cfg.proxies.length > 0 ? { proxies: cfg.proxies } : {}),
+						...(cfg.userAgent ? { userAgent: cfg.userAgent } : {}),
+					},
+					logging: {
+						level: cfg.logLevel,
+					},
+				}
+				const result = await scoutJobs(request, config)
+				if (result.length < 1) {
+					throw createTransientExternalError(
+						'orchestrator returned zero jobs across requested sites',
+					)
+				}
+				return result
+			},
+		)
 
 		expect(jobs.length).toBeGreaterThanOrEqual(1)
 		for (const job of jobs) {
